@@ -38,9 +38,12 @@ script = ExtResource("1_main")
 
 [node name="DesertEnvironment" type="Node3D" parent="." unique_id=614273901]
 script = ExtResource("7_desert")
-floor_scale = 1000.0
+bumpy_floor_subdivisions = 500
+bump_height = 1.0
 scatter_count = 1500
 scatter_radius = 900.0
+clear_radius = 30.0
+scatter_random_rotation = false
 
 [node name="FinEditor" parent="." unique_id=1655848820 instance=ExtResource("6_fin_editor")]
 

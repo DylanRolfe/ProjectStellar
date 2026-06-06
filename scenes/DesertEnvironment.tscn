@@ -7,5 +7,11 @@
 [node name="Plane_0" parent="Sketchfab_model/root/GLTF_SceneRootNode" parent_id_path=PackedInt32Array(1386875103) index="0" unique_id=891150544]
 transform = Transform3D(260, 0, 0, 0, 260, 0, 0, 0, 305.188, 0.04655226, 0.20364189, 0.5106013)
 
+[node name="Object_4" parent="Sketchfab_model/root/GLTF_SceneRootNode/Plane_0" index="0" unique_id=1606544528]
+transform = Transform3D(1, 0, 0, 0, 0.9999922, 0.0039444338, 0, -0.0039444338, 0.9999922, 0, 0, 0)
+
+[node name="Object_12" parent="Sketchfab_model/root/GLTF_SceneRootNode/Cylinder_004_4" parent_id_path=PackedInt32Array(1331632980) index="0" unique_id=2008932509]
+visible = false
+
 [node name="Landscape_11" parent="Sketchfab_model/root/GLTF_SceneRootNode" parent_id_path=PackedInt32Array(1386875103) index="11" unique_id=1442365731]
 visible = false

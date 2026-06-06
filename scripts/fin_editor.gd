@@ -3,7 +3,6 @@ extends Node3D
 
 signal fins_confirmed(fin_data: FinData)
 signal fin_data_changed(fin_data: FinData)
-signal demo_preset_selected(preset_name: String)
 
 const SUBDIVISIONS: int = 10
 const FinShapeCanvasScene = preload("res://scripts/fin_shape_canvas.gd")
@@ -15,8 +14,6 @@ const FinShapeCanvasScene = preload("res://scripts/fin_shape_canvas.gd")
 @onready var material_option: OptionButton = $CanvasLayer/Panel/Margin/VBox/MaterialRow/OptionButton
 @onready var thickness_slider: HSlider = $CanvasLayer/Panel/Margin/VBox/ThicknessRow/HSlider
 @onready var thickness_value: Label = $CanvasLayer/Panel/Margin/VBox/ThicknessRow/ValueLabel
-@onready var bad_preset_button: Button = $CanvasLayer/Panel/Margin/VBox/PresetRow/BadPresetButton
-@onready var good_preset_button: Button = $CanvasLayer/Panel/Margin/VBox/PresetRow/GoodPresetButton
 @onready var continue_button: Button = $CanvasLayer/Panel/Margin/VBox/ContinueButton
 @onready var root_chord_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/RootChord
 @onready var tip_chord_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/TipChord
@@ -32,8 +29,6 @@ func _ready() -> void:
 	fin_count_slider.value_changed.connect(_on_fin_count_changed)
 	thickness_slider.value_changed.connect(_on_thickness_changed)
 	material_option.item_selected.connect(_on_material_changed)
-	bad_preset_button.pressed.connect(func() -> void: _apply_demo_preset("bad"))
-	good_preset_button.pressed.connect(func() -> void: _apply_demo_preset("good"))
 	continue_button.pressed.connect(_on_continue)
 
 	_populate_materials()
@@ -155,33 +150,6 @@ func _on_thickness_changed(_val: float) -> void:
 func _on_material_changed(_idx: int) -> void:
 	_rebuild_all()
 
-func _apply_demo_preset(preset_name: String) -> void:
-	match preset_name:
-		"bad":
-			shape_canvas.set_points([
-				Vector2(0.0, 0.35),
-				Vector2(0.35, 0.15),
-				Vector2(0.30, -0.12),
-				Vector2(0.0, -0.35),
-			])
-			fin_count_slider.value = 1.0
-			thickness_slider.value = 0.015
-			_select_material("plastic")
-		"good":
-			shape_canvas.set_points([
-				Vector2(0.0, 0.35),
-				Vector2(0.95, 0.30),
-				Vector2(0.85, -0.30),
-				Vector2(0.0, -0.35),
-			])
-			fin_count_slider.value = 4.0
-			thickness_slider.value = 0.055
-			_select_material("carbon_fiber")
-	fin_count_value.text = "%d" % int(fin_count_slider.value)
-	thickness_value.text = "%.3f m" % thickness_slider.value
-	_rebuild_all()
-	demo_preset_selected.emit(preset_name)
-
 func _on_continue() -> void:
 	fin_data = FinData.new()
 	fin_data.set_shape_points(shape_points)
@@ -200,10 +168,3 @@ func _on_shape_points_changed(new_points: Array[Vector2]) -> void:
 	for p in FinData.sanitize_shape_points(new_points):
 		shape_points.append(p)
 	_rebuild_all()
-
-func _select_material(material_name: String) -> void:
-	var names := MaterialDatabase.material_names()
-	for i in range(names.size()):
-		if names[i] == material_name:
-			material_option.select(i)
-			return
