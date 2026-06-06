@@ -10,8 +10,8 @@ extends Camera3D
 
 var _target: Node3D
 var _focus: Vector3 = Vector3.ZERO
-var _yaw: float = 0.45
-var _pitch: float = 0.35
+var _yaw: float = 0.4
+var _pitch: float = 0.15
 
 func _ready() -> void:
 	current = true
