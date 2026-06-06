@@ -1,14 +1,76 @@
-[gd_resource type="Theme" load_steps=12 format=3]
+[gd_resource type="Theme" format=3 uid="uid://cn80sihe7y15k"]
 
-; Project Stellar in-app theme.
-; Mirrors projectstellar.ca design tokens:
-;   --bg     #020617   --panel  rgba(15,23,42,0.7)
-;   --accent #38bdf8   --border rgba(56,189,248,0.15)
-;   fonts: Syncopate (heading), JetBrains Mono (mono UI), Poppins (body)
+[ext_resource type="FontFile" uid="uid://2ollckoqnj3y" path="res://assets/fonts/JetBrainsMono.ttf" id="1_mono"]
+[ext_resource type="FontFile" uid="uid://ch75svyttdtya" path="res://assets/fonts/Syncopate-Bold.ttf" id="2_head"]
+[ext_resource type="FontFile" uid="uid://d1oanvbupttl8" path="res://assets/fonts/Poppins-Regular.ttf" id="3_body"]
 
-[ext_resource type="FontFile" path="res://assets/fonts/JetBrainsMono.ttf" id="1_mono"]
-[ext_resource type="FontFile" path="res://assets/fonts/Syncopate-Bold.ttf" id="2_head"]
-[ext_resource type="FontFile" path="res://assets/fonts/Poppins-Regular.ttf" id="3_body"]
+[sub_resource type="StyleBoxFlat" id="btn_focus"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.21961, 0.74118, 0.97255, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.21961, 0.74118, 0.97255, 0.8)
+
+[sub_resource type="StyleBoxFlat" id="btn_hover"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.21961, 0.74118, 0.97255, 0.18)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.21961, 0.74118, 0.97255, 1)
+
+[sub_resource type="StyleBoxFlat" id="btn_normal"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.05882, 0.0902, 0.16471, 0.6)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.21961, 0.74118, 0.97255, 0.55)
+
+[sub_resource type="StyleBoxFlat" id="btn_pressed"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.21961, 0.74118, 0.97255, 0.32)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.21961, 0.74118, 0.97255, 1)
+
+[sub_resource type="StyleBoxFlat" id="slider_fill"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.21961, 0.74118, 0.97255, 0.55)
+
+[sub_resource type="StyleBoxFlat" id="slider_fill_hl"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.21961, 0.74118, 0.97255, 0.9)
+
+[sub_resource type="StyleBoxFlat" id="slider_track"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.00784, 0.02353, 0.0902, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.21961, 0.74118, 0.97255, 0.25)
 
 [sub_resource type="StyleBoxFlat" id="panel_bg"]
 content_margin_left = 14.0
@@ -24,109 +86,41 @@ border_color = Color(0.21961, 0.74118, 0.97255, 0.45)
 shadow_color = Color(0.21961, 0.74118, 0.97255, 0.06)
 shadow_size = 16
 
-[sub_resource type="StyleBoxFlat" id="btn_normal"]
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
-bg_color = Color(0.05882, 0.0902, 0.16471, 0.6)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.21961, 0.74118, 0.97255, 0.55)
-
-[sub_resource type="StyleBoxFlat" id="btn_hover"]
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
-bg_color = Color(0.21961, 0.74118, 0.97255, 0.18)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.21961, 0.74118, 0.97255, 1.0)
-
-[sub_resource type="StyleBoxFlat" id="btn_pressed"]
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
-bg_color = Color(0.21961, 0.74118, 0.97255, 0.32)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.21961, 0.74118, 0.97255, 1.0)
-
-[sub_resource type="StyleBoxFlat" id="btn_focus"]
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
-bg_color = Color(0.21961, 0.74118, 0.97255, 0.05)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.21961, 0.74118, 0.97255, 0.8)
-
-[sub_resource type="StyleBoxFlat" id="slider_track"]
-content_margin_top = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(0.00784, 0.02353, 0.0902, 0.85)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.21961, 0.74118, 0.97255, 0.25)
-
-[sub_resource type="StyleBoxFlat" id="slider_fill"]
-content_margin_top = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(0.21961, 0.74118, 0.97255, 0.55)
-
-[sub_resource type="StyleBoxFlat" id="slider_fill_hl"]
-content_margin_top = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(0.21961, 0.74118, 0.97255, 0.9)
-
 [resource]
 default_font = ExtResource("3_body")
 default_font_size = 14
 Button/colors/font_color = Color(0.21961, 0.74118, 0.97255, 1)
+Button/colors/font_focus_color = Color(0.6, 0.86, 1, 1)
 Button/colors/font_hover_color = Color(0.85, 0.94, 1, 1)
 Button/colors/font_pressed_color = Color(1, 1, 1, 1)
-Button/colors/font_focus_color = Color(0.6, 0.86, 1, 1)
-Button/fonts/font = ExtResource("1_mono")
 Button/font_sizes/font_size = 13
-Button/styles/normal = SubResource("btn_normal")
-Button/styles/hover = SubResource("btn_hover")
-Button/styles/pressed = SubResource("btn_pressed")
+Button/fonts/font = ExtResource("1_mono")
 Button/styles/focus = SubResource("btn_focus")
-Header/base_type = &"Label"
-Header/colors/font_color = Color(0.21961, 0.74118, 0.97255, 1)
-Header/fonts/font = ExtResource("2_head")
-Header/font_sizes/font_size = 13
-Label/colors/font_color = Color(0.79608, 0.83529, 0.88235, 1)
-Label/fonts/font = ExtResource("1_mono")
-Label/font_sizes/font_size = 13
-HSlider/styles/slider = SubResource("slider_track")
+Button/styles/hover = SubResource("btn_hover")
+Button/styles/normal = SubResource("btn_normal")
+Button/styles/pressed = SubResource("btn_pressed")
 HSlider/styles/grabber_area = SubResource("slider_fill")
 HSlider/styles/grabber_area_highlight = SubResource("slider_fill_hl")
+HSlider/styles/slider = SubResource("slider_track")
+Header/base_type = &"Label"
+Header/colors/font_color = Color(0.21961, 0.74118, 0.97255, 1)
+Header/font_sizes/font_size = 13
+Header/fonts/font = ExtResource("2_head")
+Label/colors/font_color = Color(0.79608, 0.83529, 0.88235, 1)
+Label/font_sizes/font_size = 13
+Label/fonts/font = ExtResource("1_mono")
 OptionButton/colors/font_color = Color(0.79608, 0.83529, 0.88235, 1)
-OptionButton/colors/font_hover_color = Color(0.85, 0.94, 1, 1)
 OptionButton/colors/font_focus_color = Color(0.85, 0.94, 1, 1)
-OptionButton/fonts/font = ExtResource("1_mono")
+OptionButton/colors/font_hover_color = Color(0.85, 0.94, 1, 1)
 OptionButton/font_sizes/font_size = 13
-OptionButton/styles/normal = SubResource("btn_normal")
-OptionButton/styles/hover = SubResource("btn_hover")
-OptionButton/styles/pressed = SubResource("btn_pressed")
+OptionButton/fonts/font = ExtResource("1_mono")
 OptionButton/styles/focus = SubResource("btn_focus")
-PanelContainer/styles/panel = SubResource("panel_bg")
+OptionButton/styles/hover = SubResource("btn_hover")
+OptionButton/styles/normal = SubResource("btn_normal")
+OptionButton/styles/pressed = SubResource("btn_pressed")
 Panel/styles/panel = SubResource("panel_bg")
+PanelContainer/styles/panel = SubResource("panel_bg")
 PopupMenu/colors/font_color = Color(0.79608, 0.83529, 0.88235, 1)
 PopupMenu/colors/font_hover_color = Color(1, 1, 1, 1)
-PopupMenu/fonts/font = ExtResource("1_mono")
 PopupMenu/font_sizes/font_size = 13
+PopupMenu/fonts/font = ExtResource("1_mono")

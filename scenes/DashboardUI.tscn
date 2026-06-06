@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://dwxv11nnp5fpe"]
 
-[ext_resource type="Script" path="res://scripts/ui_controller.gd" id="1_ui"]
+[ext_resource type="Script" uid="uid://2dtwb44ctjxs" path="res://scripts/ui_controller.gd" id="1_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ResultsPanel.tscn" id="2_results"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
@@ -10,7 +10,8 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[node name="DashboardUI" type="Control"]
+[node name="DashboardUI" type="Control" unique_id=1550700086]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -19,203 +20,199 @@ grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1_ui")
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="Panel" type="PanelContainer" parent="." unique_id=1653166782]
+layout_mode = 0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 376.0
 offset_bottom = 500.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="Margin" type="MarginContainer" parent="Panel"]
+[node name="Margin" type="MarginContainer" parent="Panel" unique_id=55972275]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin" unique_id=1565727276]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1139668029]
 layout_mode = 2
 theme_type_variation = &"Header"
 text = "ROCKET CONTROLS"
 
-[node name="PayloadMassRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="PayloadMassRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1780888028]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PayloadMassLabel" type="Label" parent="Panel/Margin/VBox/PayloadMassRow"]
+[node name="PayloadMassLabel" type="Label" parent="Panel/Margin/VBox/PayloadMassRow" unique_id=593500873]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "Payload"
 
-[node name="PayloadMassSlider" type="HSlider" parent="Panel/Margin/VBox/PayloadMassRow"]
+[node name="PayloadMassSlider" type="HSlider" parent="Panel/Margin/VBox/PayloadMassRow" unique_id=842892434]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
 max_value = 200.0
-step = 1.0
 value = 20.0
 
-[node name="PayloadMassValueLabel" type="Label" parent="Panel/Margin/VBox/PayloadMassRow"]
+[node name="PayloadMassValueLabel" type="Label" parent="Panel/Margin/VBox/PayloadMassRow" unique_id=1590502259]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "20 kg"
 horizontal_alignment = 2
 
-[node name="ThrustRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="ThrustRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1325581086]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ThrustLabel" type="Label" parent="Panel/Margin/VBox/ThrustRow"]
+[node name="ThrustLabel" type="Label" parent="Panel/Margin/VBox/ThrustRow" unique_id=96678512]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "Thrust"
 
-[node name="ThrustSlider" type="HSlider" parent="Panel/Margin/VBox/ThrustRow"]
+[node name="ThrustSlider" type="HSlider" parent="Panel/Margin/VBox/ThrustRow" unique_id=1133084351]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 100.0
-max_value = 5000.0
-step = 10.0
+max_value = 5000000.0
+step = 1000.0
 value = 800.0
 
-[node name="ThrustValueLabel" type="Label" parent="Panel/Margin/VBox/ThrustRow"]
+[node name="ThrustValueLabel" type="Label" parent="Panel/Margin/VBox/ThrustRow" unique_id=1092130639]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "800 N"
 horizontal_alignment = 2
 
-[node name="FuelRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="FuelRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=498796012]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="FuelLabel" type="Label" parent="Panel/Margin/VBox/FuelRow"]
+[node name="FuelLabel" type="Label" parent="Panel/Margin/VBox/FuelRow" unique_id=174914005]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "Fuel"
 
-[node name="FuelSlider" type="HSlider" parent="Panel/Margin/VBox/FuelRow"]
+[node name="FuelSlider" type="HSlider" parent="Panel/Margin/VBox/FuelRow" unique_id=2001439892]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
-max_value = 100.0
-step = 1.0
+max_value = 10000.0
+step = 100.0
 value = 40.0
 
-[node name="FuelValueLabel" type="Label" parent="Panel/Margin/VBox/FuelRow"]
+[node name="FuelValueLabel" type="Label" parent="Panel/Margin/VBox/FuelRow" unique_id=429230685]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "40"
 horizontal_alignment = 2
 
-[node name="WindSpeedRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="WindSpeedRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=2027575630]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="WindSpeedLabel" type="Label" parent="Panel/Margin/VBox/WindSpeedRow"]
+[node name="WindSpeedLabel" type="Label" parent="Panel/Margin/VBox/WindSpeedRow" unique_id=1340805835]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "Wind"
 
-[node name="WindSpeedSlider" type="HSlider" parent="Panel/Margin/VBox/WindSpeedRow"]
+[node name="WindSpeedSlider" type="HSlider" parent="Panel/Margin/VBox/WindSpeedRow" unique_id=185471730]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 40.0
 step = 0.5
 
-[node name="WindSpeedValueLabel" type="Label" parent="Panel/Margin/VBox/WindSpeedRow"]
+[node name="WindSpeedValueLabel" type="Label" parent="Panel/Margin/VBox/WindSpeedRow" unique_id=735464842]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "0.0 m/s"
 horizontal_alignment = 2
 
-[node name="WindDirectionRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="WindDirectionRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1806767892]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="WindDirectionLabel" type="Label" parent="Panel/Margin/VBox/WindDirectionRow"]
+[node name="WindDirectionLabel" type="Label" parent="Panel/Margin/VBox/WindDirectionRow" unique_id=188566065]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "Dir"
 
-[node name="WindDirectionSlider" type="HSlider" parent="Panel/Margin/VBox/WindDirectionRow"]
+[node name="WindDirectionSlider" type="HSlider" parent="Panel/Margin/VBox/WindDirectionRow" unique_id=1110907115]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 360.0
-step = 1.0
 
-[node name="WindDirectionValueLabel" type="Label" parent="Panel/Margin/VBox/WindDirectionRow"]
+[node name="WindDirectionValueLabel" type="Label" parent="Panel/Margin/VBox/WindDirectionRow" unique_id=1469915801]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "0 deg"
 horizontal_alignment = 2
 
-[node name="BodyMaterialRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="BodyMaterialRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=507970202]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="BodyMaterialLabel" type="Label" parent="Panel/Margin/VBox/BodyMaterialRow"]
+[node name="BodyMaterialLabel" type="Label" parent="Panel/Margin/VBox/BodyMaterialRow" unique_id=551316112]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "Body"
 
-[node name="BodyMaterialOption" type="OptionButton" parent="Panel/Margin/VBox/BodyMaterialRow"]
+[node name="BodyMaterialOption" type="OptionButton" parent="Panel/Margin/VBox/BodyMaterialRow" unique_id=864820991]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ShellMassLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="ShellMassLabel" type="Label" parent="Panel/Margin/VBox" unique_id=234323842]
 layout_mode = 2
 text = "Shell mass: 0.0 kg"
 
-[node name="FinMassLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="FinMassLabel" type="Label" parent="Panel/Margin/VBox" unique_id=175428870]
 layout_mode = 2
 text = "Fin mass: 0.0 kg"
 
-[node name="TotalMassLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="TotalMassLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1517815499]
 layout_mode = 2
 text = "Total launch mass: 0.0 kg"
 
-[node name="FinCountRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="FinCountRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1489504087]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="FinCountLabel" type="Label" parent="Panel/Margin/VBox/FinCountRow"]
+[node name="FinCountLabel" type="Label" parent="Panel/Margin/VBox/FinCountRow" unique_id=1199172817]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "Fins"
 
-[node name="FinCountSlider" type="HSlider" parent="Panel/Margin/VBox/FinCountRow"]
+[node name="FinCountSlider" type="HSlider" parent="Panel/Margin/VBox/FinCountRow" unique_id=509991621]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 8.0
-step = 1.0
 
-[node name="FinCountValueLabel" type="Label" parent="Panel/Margin/VBox/FinCountRow"]
+[node name="FinCountValueLabel" type="Label" parent="Panel/Margin/VBox/FinCountRow" unique_id=1155590444]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "0"
 horizontal_alignment = 2
 
-[node name="FinSizeRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="FinSizeRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=843937358]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="FinSizeLabel" type="Label" parent="Panel/Margin/VBox/FinSizeRow"]
+[node name="FinSizeLabel" type="Label" parent="Panel/Margin/VBox/FinSizeRow" unique_id=524187918]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 text = "Fin size"
 
-[node name="FinSizeSlider" type="HSlider" parent="Panel/Margin/VBox/FinSizeRow"]
+[node name="FinSizeSlider" type="HSlider" parent="Panel/Margin/VBox/FinSizeRow" unique_id=1444495476]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -224,34 +221,33 @@ max_value = 1.0
 step = 0.01
 value = 0.2
 
-[node name="FinSizeValueLabel" type="Label" parent="Panel/Margin/VBox/FinSizeRow"]
+[node name="FinSizeValueLabel" type="Label" parent="Panel/Margin/VBox/FinSizeRow" unique_id=166752346]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "0.20"
 horizontal_alignment = 2
 
-[node name="ButtonRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="ButtonRow" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1898343637]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="LaunchButton" type="Button" parent="Panel/Margin/VBox/ButtonRow"]
+[node name="LaunchButton" type="Button" parent="Panel/Margin/VBox/ButtonRow" unique_id=497366065]
 layout_mode = 2
 text = "Launch"
 
-[node name="ResetButton" type="Button" parent="Panel/Margin/VBox/ButtonRow"]
+[node name="ResetButton" type="Button" parent="Panel/Margin/VBox/ButtonRow" unique_id=1580075969]
 layout_mode = 2
 text = "Reset"
 
-[node name="StatusLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="StatusLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1461425872]
 layout_mode = 2
 text = "Ready"
 
-[node name="FlightDataLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="FlightDataLabel" type="Label" parent="Panel/Margin/VBox" unique_id=722529297]
 layout_mode = 2
-text = ""
 
-[node name="FuelDataLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="FuelDataLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1487423807]
 layout_mode = 2
-text = ""
 
-[node name="ResultsPanel" parent="." instance=ExtResource("2_results")]
+[node name="ResultsPanel" parent="." unique_id=1841152082 instance=ExtResource("2_results")]
+anchors_preset = 0
