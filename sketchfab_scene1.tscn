@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://cavc8l07xx1j1"]
+
+[ext_resource type="PackedScene" uid="uid://bxgjl4efc1u1j" path="res://assets/models/low-poly_desert_scene.glb" id="1_bandw"]
+
+[node name="Sketchfab_Scene" unique_id=1783144916 instance=ExtResource("1_bandw")]

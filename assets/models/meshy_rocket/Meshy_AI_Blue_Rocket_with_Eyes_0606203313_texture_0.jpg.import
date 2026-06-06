@@ -2,14 +2,14 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bes20upme5di1"
+uid="uid://cve5bodv3mpcv"
 path.s3tc="res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_0.jpg-5f02697ade2d59ba6657a04c7b796b6a.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "1b0a1369ff749984d529551456f8da7f"
+"md5": "8bfa9e2f0234fa25c55293fd0ae03bc3"
 }
 
 [deps]
