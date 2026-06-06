@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui_controller.gd" id="1_ui"]
+[ext_resource type="PackedScene" path="res://scenes/ResultsPanel.tscn" id="2_results"]
 
 [node name="DashboardUI" type="Control"]
 anchors_preset = 15
@@ -15,7 +16,7 @@ script = ExtResource("1_ui")
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 376.0
-offset_bottom = 330.0
+offset_bottom = 420.0
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
@@ -148,6 +149,52 @@ layout_mode = 2
 text = "0 deg"
 horizontal_alignment = 2
 
+[node name="FinCountRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FinCountLabel" type="Label" parent="Panel/Margin/VBox/FinCountRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "Fins"
+
+[node name="FinCountSlider" type="HSlider" parent="Panel/Margin/VBox/FinCountRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 8.0
+step = 1.0
+
+[node name="FinCountValueLabel" type="Label" parent="Panel/Margin/VBox/FinCountRow"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "0"
+horizontal_alignment = 2
+
+[node name="FinSizeRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FinSizeLabel" type="Label" parent="Panel/Margin/VBox/FinSizeRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "Fin size"
+
+[node name="FinSizeSlider" type="HSlider" parent="Panel/Margin/VBox/FinSizeRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.05
+max_value = 1.0
+step = 0.01
+value = 0.2
+
+[node name="FinSizeValueLabel" type="Label" parent="Panel/Margin/VBox/FinSizeRow"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "0.20"
+horizontal_alignment = 2
+
 [node name="ButtonRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -163,3 +210,5 @@ text = "Reset"
 [node name="StatusLabel" type="Label" parent="Panel/Margin/VBox"]
 layout_mode = 2
 text = "Ready"
+
+[node name="ResultsPanel" parent="." instance=ExtResource("2_results")]
