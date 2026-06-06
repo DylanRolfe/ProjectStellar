@@ -69,7 +69,7 @@ static func sanitize_shape_points(raw_points: Array[Vector2]) -> Array[Vector2]:
 	return sanitized
 
 func compute_mesh(subdivisions: int = 8) -> Mesh:
-	set_shape_points(shape_points)
+	_update_control_points_from_shape()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
@@ -166,14 +166,6 @@ func compute_mesh(subdivisions: int = 8) -> Mesh:
 			st.add_vertex(b0)
 			st.add_vertex(b1)
 
-	surface_area = 0.0
-	for j in range(subdivisions):
-		for i in range(subdivisions):
-			var idx := j * n + i
-			var a := front_verts[idx]
-			var b := front_verts[idx + n]
-			var c := front_verts[idx + 1]
-			surface_area += (b - a).cross(c - a).length() * 0.5
 	surface_area = calculate_surface_area()
 
 	var mesh := st.commit()
