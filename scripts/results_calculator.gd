@@ -10,6 +10,7 @@ static func build_results(rocket: RocketController, reason: String) -> Dictionar
 		"stability_score": stability_score,
 		"max_tilt": rocket.max_tilt,
 		"flight_time": rocket.flight_time(),
+		"x_displacement": rocket.x_displacement(),
 		"success": success,
 		"failure_reason": "Stable flight" if success else reason,
 	}

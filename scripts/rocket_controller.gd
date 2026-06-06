@@ -22,6 +22,7 @@ var max_altitude: float = 0.0
 var max_speed: float = 0.0
 var current_tilt: float = 0.0
 var max_tilt: float = 0.0
+var start_x: float = 0.0
 
 @onready var fin_holder: Node3D = $FinHolder
 @onready var engine_flame: RocketFlame = $EngineFlame
@@ -72,6 +73,7 @@ func setup(new_config: RocketConfig) -> void:
 	max_speed = 0.0
 	current_tilt = 0.0
 	max_tilt = 0.0
+	start_x = global_position.x
 	_launched = false
 	_finished = false
 	_flight_time = 0.0
@@ -143,6 +145,9 @@ func average_tilt() -> float:
 
 func flight_time() -> float:
 	return _flight_time
+
+func x_displacement() -> float:
+	return global_position.x - start_x
 
 func force_finish(reason: String) -> void:
 	_finish_flight(reason)

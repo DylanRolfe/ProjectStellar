@@ -14,7 +14,7 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 16.0
-offset_top = -190.0
+offset_top = -212.0
 offset_right = 376.0
 offset_bottom = -16.0
 grow_vertical = 0
@@ -46,6 +46,10 @@ text = "Max speed: 0.0 m/s"
 [node name="FlightTimeLabel" type="Label" parent="Panel/Margin/VBox"]
 layout_mode = 2
 text = "Flight time: 0.0 s"
+
+[node name="XDisplacementLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "X displacement: 0.0 m"
 
 [node name="StabilityScoreLabel" type="Label" parent="Panel/Margin/VBox"]
 layout_mode = 2
