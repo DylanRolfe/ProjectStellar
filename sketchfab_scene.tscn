@@ -1,5 +1,5 @@
-[gd_scene format=3 uid="uid://c6jelejuq6p1j"]
+[gd_scene format=3 uid="uid://4b0bh7ihyo88"]
 
 [ext_resource type="PackedScene" uid="uid://bxgjl4efc1u1j" path="res://assets/models/low-poly_desert_scene.glb" id="1_r57si"]
 
-[node name="Sketchfab_Scene" unique_id=1215099163 instance=ExtResource("1_r57si")]
+[node name="Sketchfab_Scene" unique_id=1783144916 instance=ExtResource("1_r57si")]
