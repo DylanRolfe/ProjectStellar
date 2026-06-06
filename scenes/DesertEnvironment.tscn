@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://g0siaf5yjsah"]
+
+[ext_resource type="PackedScene" uid="uid://bxgjl4efc1u1j" path="res://assets/models/low-poly_desert_scene.glb" id="1_v3woy"]
+
+[node name="Sketchfab_Scene" unique_id=1215099163 instance=ExtResource("1_v3woy")]
+
+[node name="Plane_0" parent="Sketchfab_model/root/GLTF_SceneRootNode" parent_id_path=PackedInt32Array(1386875103) index="0" unique_id=891150544]
+transform = Transform3D(260, 0, 0, 0, 260, 0, 0, 0, 305.188, 0.04655226, 0.20364189, 0.5106013)
+
+[node name="Landscape_11" parent="Sketchfab_model/root/GLTF_SceneRootNode" parent_id_path=PackedInt32Array(1386875103) index="11" unique_id=1442365731]
+visible = false
