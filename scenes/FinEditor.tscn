@@ -2,50 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/fin_editor.gd" id="1_editor"]
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_body"]
-top_radius = 0.28
-bottom_radius = 0.28
-height = 2.4
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
-albedo_color = Color(0.3, 0.35, 0.4, 1)
-roughness = 0.6
-
-[sub_resource type="SphereMesh" id="SphereMesh_ref"]
-radius = 0.02
-height = 0.04
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_handle"]
-albedo_color = Color(1, 0.6, 0, 1)
-metallic = 0.7
-roughness = 0.3
-
 [node name="FinEditor" type="Node3D"]
 script = ExtResource("1_editor")
-
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.685, 0.13, -0.717, 0, 0.984, 0.176, 0.729, -0.121, 0.674, 0.35, 0.35, 0.65)
-current = true
-fov = 62.0
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.924, -0.259, 0.282, 0.191, 0.936, 0.296, -0.331, -0.238, 0.913, 0, 3, 0)
-light_energy = 3.2
-shadow_enabled = true
-
-[node name="FinRoot" type="Node3D" parent="."]
-
-[node name="FinMesh" type="MeshInstance3D" parent="FinRoot"]
-
-[node name="RocketPreview" type="Node3D" parent="."]
-transform = Transform3D(1.35, 0, 0, 0, 1.35, 0, 0, 0, 1.35, 0.55, 0, 0)
-
-[node name="Body" type="MeshInstance3D" parent="RocketPreview"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
-mesh = SubResource("CylinderMesh_body")
-surface_material_override/0 = SubResource("StandardMaterial3D_body")
-
-[node name="PreviewFins" type="Node3D" parent="RocketPreview"]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 layer = 10

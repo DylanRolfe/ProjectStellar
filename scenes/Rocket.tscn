@@ -12,7 +12,7 @@ gravity_scale = 0.0
 freeze = true
 can_sleep = false
 angular_damp = 1.0
-scale = Vector3(8, 8, 8)
+scale = Vector3(12, 12, 12)
 script = ExtResource("1_controller")
 
 [node name="MeshyRocketModel" parent="." instance=ExtResource("2_meshy_rocket")]
