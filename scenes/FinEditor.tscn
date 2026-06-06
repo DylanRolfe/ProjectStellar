@@ -1,0 +1,169 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/fin_editor.gd" id="1_editor"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_body"]
+top_radius = 0.12
+bottom_radius = 0.12
+height = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.3, 0.35, 0.4, 1)
+roughness = 0.6
+
+[sub_resource type="SphereMesh" id="SphereMesh_ref"]
+radius = 0.02
+height = 0.04
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_handle"]
+albedo_color = Color(1, 0.6, 0, 1)
+metallic = 0.7
+roughness = 0.3
+
+[node name="FinEditor" type="Node3D"]
+script = ExtResource("1_editor")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.685, 0.13, -0.717, 0, 0.984, 0.176, 0.729, -0.121, 0.674, 0.35, 0.35, 0.65)
+current = true
+fov = 40.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.924, -0.259, 0.282, 0.191, 0.936, 0.296, -0.331, -0.238, 0.913, 0, 3, 0)
+light_energy = 2.0
+shadow_enabled = true
+
+[node name="FinRoot" type="Node3D" parent="."]
+
+[node name="FinMesh" type="MeshInstance3D" parent="FinRoot"]
+
+[node name="RocketPreview" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.18, -0.35)
+
+[node name="Body" type="MeshInstance3D" parent="RocketPreview"]
+mesh = SubResource("CylinderMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="PreviewFins" type="Node3D" parent="RocketPreview"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Panel" type="PanelContainer" parent="CanvasLayer"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 380.0
+offset_bottom = 524.0
+mouse_filter = 1
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer/Panel/Margin/VBox"]
+layout_mode = 2
+text = "Fin Designer"
+theme_override_font_sizes/font_size = 18
+
+[node name="InstructionsLabel" type="Label" parent="CanvasLayer/Panel/Margin/VBox"]
+layout_mode = 2
+text = "Drag the orange spheres to shape your fin. Adjust settings below."
+autowrap_mode = 2
+
+[node name="FinCountRow" type="HBoxContainer" parent="CanvasLayer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Margin/VBox/FinCountRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Fin Count"
+
+[node name="HSlider" type="HSlider" parent="CanvasLayer/Panel/Margin/VBox/FinCountRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 8.0
+step = 1.0
+value = 4.0
+
+[node name="ValueLabel" type="Label" parent="CanvasLayer/Panel/Margin/VBox/FinCountRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "4"
+horizontal_alignment = 2
+
+[node name="MaterialRow" type="HBoxContainer" parent="CanvasLayer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Margin/VBox/MaterialRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Material"
+
+[node name="OptionButton" type="OptionButton" parent="CanvasLayer/Panel/Margin/VBox/MaterialRow"]
+custom_minimum_size = Vector2(198, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ThicknessRow" type="HBoxContainer" parent="CanvasLayer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Margin/VBox/ThicknessRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Thickness"
+
+[node name="HSlider" type="HSlider" parent="CanvasLayer/Panel/Margin/VBox/ThicknessRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.005
+max_value = 0.12
+step = 0.005
+value = 0.04
+
+[node name="ValueLabel" type="Label" parent="CanvasLayer/Panel/Margin/VBox/ThicknessRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "0.040 m"
+horizontal_alignment = 2
+
+[node name="InfoRow" type="HBoxContainer" parent="CanvasLayer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="RootChord" type="Label" parent="CanvasLayer/Panel/Margin/VBox/InfoRow"]
+layout_mode = 2
+text = "Root: 0.40 m"
+theme_override_font_sizes/font_size = 11
+
+[node name="TipChord" type="Label" parent="CanvasLayer/Panel/Margin/VBox/InfoRow"]
+layout_mode = 2
+text = "Tip: 0.25 m"
+theme_override_font_sizes/font_size = 11
+
+[node name="Span" type="Label" parent="CanvasLayer/Panel/Margin/VBox/InfoRow"]
+layout_mode = 2
+text = "Span: 0.30 m"
+theme_override_font_sizes/font_size = 11
+
+[node name="Area" type="Label" parent="CanvasLayer/Panel/Margin/VBox/InfoRow"]
+layout_mode = 2
+text = "Area: 0.000 m²"
+theme_override_font_sizes/font_size = 11
+
+[node name="ContinueButton" type="Button" parent="CanvasLayer/Panel/Margin/VBox"]
+layout_mode = 2
+text = "Continue to Launch"
