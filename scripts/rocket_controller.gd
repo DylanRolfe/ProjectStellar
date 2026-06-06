@@ -6,7 +6,7 @@ signal flight_finished(reason: String)
 const FUEL_BURN_RATE: float = 8.0
 const AIR_DENSITY: float = 1.225
 const DRAG_COEFFICIENT: float = 1.2
-const WIND_FORCE_MULTIPLIER: float = 1.0
+const WIND_FORCE_MULTIPLIER: float = 5.0
 const DESTABILIZING_TORQUE: float = 0.35
 const STABILIZING_TORQUE: float = 0.55
 const MIN_AIRFLOW_SPEED: float = 0.1
@@ -83,7 +83,7 @@ func setup(new_config: RocketConfig) -> void:
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 	rotation = Vector3.ZERO
-	angular_damp = 3.0
+	angular_damp = 0.5
 	freeze = true
 	sleeping = false
 	_build_visual_fins()
@@ -124,6 +124,10 @@ func _physics_process(delta: float) -> void:
 			_fuel -= burn
 			mass = config.dry_mass + _fuel * RocketConfig.FUEL_MASS_FACTOR
 			apply_central_force(global_transform.basis.y.normalized() * config.engine_thrust)
+		elif engine_flame.emitting:
+			engine_flame.emitting = false
+	elif engine_flame.emitting:
+		engine_flame.emitting = false
 
 	max_altitude = maxf(max_altitude, altitude)
 	max_speed = maxf(max_speed, linear_velocity.length())
@@ -137,6 +141,12 @@ func _physics_process(delta: float) -> void:
 	if _last_print_time >= 1.0:
 		_last_print_time = 0.0
 		print("Altitude %.1f m | Speed %.1f m/s | Fuel %.1f | Wind %.1f m/s @ %.0f deg" % [altitude, linear_velocity.length(), _fuel, config.wind_speed, config.wind_direction])
+
+func get_current_altitude() -> float:
+	return maxf(global_position.y, 0.0)
+
+func get_current_fuel() -> float:
+	return _fuel
 
 func average_tilt() -> float:
 	return _tilt_sum / float(_tilt_samples) if _tilt_samples > 0 else 0.0

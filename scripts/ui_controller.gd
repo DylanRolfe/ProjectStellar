@@ -29,6 +29,8 @@ signal config_changed(config: RocketConfig)
 @onready var fin_mass_label: Label = $Panel/Margin/VBox/FinMassLabel
 @onready var total_mass_label: Label = $Panel/Margin/VBox/TotalMassLabel
 @onready var status_label: Label = $Panel/Margin/VBox/StatusLabel
+@onready var flight_data_label: Label = $Panel/Margin/VBox/FlightDataLabel
+@onready var fuel_data_label: Label = $Panel/Margin/VBox/FuelDataLabel
 @onready var results_panel: Control = $ResultsPanel
 @onready var result_banner: Label = $ResultsPanel/Panel/Margin/VBox/BannerLabel
 @onready var max_height_label: Label = $ResultsPanel/Panel/Margin/VBox/MaxHeightLabel
@@ -112,8 +114,14 @@ func set_hud_mode(enabled: bool) -> void:
 	body_material_option.disabled = enabled
 	launch_button.disabled = enabled
 	status_label.text = "In flight" if enabled else "Ready"
+	flight_data_label.visible = enabled
+	fuel_data_label.visible = enabled
 	if enabled:
 		results_panel.visible = false
+
+func update_flight_data(altitude: float, fuel: float) -> void:
+	flight_data_label.text = "Altitude: %.1f m" % altitude
+	fuel_data_label.text = "Fuel: %.1f kg" % fuel
 
 func _on_launch_pressed() -> void:
 	status_label.text = "In flight"
