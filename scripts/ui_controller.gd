@@ -36,6 +36,7 @@ signal config_changed(config: RocketConfig)
 @onready var max_height_label: Label = $ResultsPanel/Panel/Margin/VBox/MaxHeightLabel
 @onready var max_speed_label: Label = $ResultsPanel/Panel/Margin/VBox/MaxSpeedLabel
 @onready var flight_time_label: Label = $ResultsPanel/Panel/Margin/VBox/FlightTimeLabel
+@onready var x_displacement_label: Label = $ResultsPanel/Panel/Margin/VBox/XDisplacementLabel
 @onready var stability_score_label: Label = $ResultsPanel/Panel/Margin/VBox/StabilityScoreLabel
 @onready var max_tilt_label: Label = $ResultsPanel/Panel/Margin/VBox/MaxTiltLabel
 @onready var failure_reason_label: Label = $ResultsPanel/Panel/Margin/VBox/FailureReasonLabel
@@ -136,6 +137,7 @@ func show_results(results: Dictionary) -> void:
 	max_height_label.text = "Max height: %.1f m" % results["max_height"]
 	max_speed_label.text = "Max speed: %.1f m/s" % results["max_speed"]
 	flight_time_label.text = "Flight time: %.1f s" % results.get("flight_time", 0.0)
+	x_displacement_label.text = "X displacement: %.1f m" % results.get("x_displacement", 0.0)
 	stability_score_label.text = "Stability: %.0f / 100" % results["stability_score"]
 	max_tilt_label.text = "Max tilt: %.1f deg" % results["max_tilt"]
 	failure_reason_label.text = "Reason: %s" % results["failure_reason"]
