@@ -1,7 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/Rocket.tscn" id="2_rocket"]
+[ext_resource type="PackedScene" path="res://scenes/DashboardUI.tscn" id="3_dashboard"]
+[ext_resource type="Script" path="res://scripts/simulation_camera.gd" id="4_camera"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
 size = Vector3(20, 0.1, 20)
@@ -33,6 +35,11 @@ light_energy = 2.5
 transform = Transform3D(0.8, 0, -0.6, -0.222835, 0.928477, -0.297113, 0.557086, 0.371391, 0.742781, 6, 4, 8)
 current = true
 fov = 60.0
+script = ExtResource("4_camera")
+target_path = NodePath("../Rocket")
+distance = 8.0
+height_offset = 1.4
+follow_smoothing = 0.0
 
 [node name="Ground" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
@@ -49,3 +56,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_world")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="DashboardUI" parent="UILayer" instance=ExtResource("3_dashboard")]
