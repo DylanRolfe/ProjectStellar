@@ -242,6 +242,7 @@ func _build_visual_fins() -> void:
 		basis.y = Vector3.UP
 		basis.z = tangent
 		fin.basis = basis
+		fin.scale = Vector3(0.85, 0.85, 0.85)
 
 func _effective_body_mass() -> float:
 	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
