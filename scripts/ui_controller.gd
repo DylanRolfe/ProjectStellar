@@ -83,26 +83,6 @@ func build_config() -> RocketConfig:
 	config.recalculate_masses()
 	return config
 
-func apply_demo_preset(preset_name: String) -> void:
-	match preset_name:
-		"bad":
-			payload_mass_slider.value = 35.0
-			thrust_slider.value = 900.0
-			fuel_slider.value = 38.0
-			wind_speed_slider.value = 34.0
-			wind_direction_slider.value = 90.0
-			_select_body_material("steel")
-		"good":
-			payload_mass_slider.value = 12.0
-			thrust_slider.value = 900.0
-			fuel_slider.value = 38.0
-			wind_speed_slider.value = 34.0
-			wind_direction_slider.value = 90.0
-			_select_body_material("carbon_fiber")
-	_update_value_labels()
-	status_label.text = "Ready"
-	config_changed.emit(build_config())
-
 func _on_launch_pressed() -> void:
 	status_label.text = "In flight"
 	results_panel.visible = false
@@ -142,9 +122,3 @@ func _update_value_labels() -> void:
 func _selected_body_material_name() -> String:
 	var metadata: Variant = body_material_option.get_item_metadata(body_material_option.selected)
 	return str(metadata) if metadata != null else "aluminum"
-
-func _select_body_material(material_name: String) -> void:
-	for i in range(body_material_option.get_item_count()):
-		if str(body_material_option.get_item_metadata(i)) == material_name:
-			body_material_option.select(i)
-			return
