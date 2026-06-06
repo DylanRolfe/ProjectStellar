@@ -72,6 +72,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.keycode == KEY_F11:
 		_toggle_fullscreen()
 
+func _process(_delta: float) -> void:
+	if _app_state == AppState.IN_FLIGHT:
+		ui.update_flight_data(rocket.get_current_altitude(), rocket.get_current_fuel())
+
 func _on_launch_requested(slider_config: RocketConfig) -> void:
 	if rocket == null or simulation_manager == null:
 		return
