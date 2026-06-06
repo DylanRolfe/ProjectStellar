@@ -1,22 +1,53 @@
 class_name RocketController
 extends RigidBody3D
 
+signal flight_finished(reason: String)
+
 const FUEL_BURN_RATE: float = 8.0
 const AIR_DENSITY: float = 1.225
 const DRAG_COEFFICIENT: float = 1.2
 const WIND_FORCE_MULTIPLIER: float = 3.0
+const DESTABILIZING_TORQUE: float = 0.9
+const STABILIZING_TORQUE: float = 0.45
+const MIN_AIRFLOW_SPEED: float = 0.1
+const MIN_TORQUE_AXIS: float = 0.001
+const FIN_BASE_HEIGHT: float = 0.45
+const FIN_BODY_RADIUS: float = 0.31
+const MIN_FLIGHT_TIME: float = 1.0
+const TUMBLE_TILT_DEGREES: float = 82.0
+const GROUND_IMPACT_HEIGHT: float = 0.25
 
 var config: RocketConfig = RocketConfig.new()
 var max_altitude: float = 0.0
 var max_speed: float = 0.0
+var current_tilt: float = 0.0
+var max_tilt: float = 0.0
+
+@onready var fin_holder: Node3D = $FinHolder
 
 var _fuel: float = 0.0
 var _launched: bool = false
+var _finished: bool = false
+var _flight_time: float = 0.0
+var _tilt_sum: float = 0.0
+var _tilt_samples: int = 0
+var _tumbled: bool = false
 var _last_print_time: float = 0.0
+var _fin_material: StandardMaterial3D
 
 func _ready() -> void:
+	_fin_material = StandardMaterial3D.new()
+	_fin_material.albedo_color = Color(1.0, 0.72, 0.12, 1.0)
+	_fin_material.roughness = 0.45
 	setup(config)
 	set_physics_process(true)
+
+func preview_config(new_config: RocketConfig) -> void:
+	if _launched:
+		return
+	config = new_config
+	mass = config.rocket_mass
+	_build_visual_fins()
 
 func setup(new_config: RocketConfig) -> void:
 	config = new_config
@@ -24,24 +55,35 @@ func setup(new_config: RocketConfig) -> void:
 	_fuel = config.fuel_amount
 	max_altitude = 0.0
 	max_speed = 0.0
+	current_tilt = 0.0
+	max_tilt = 0.0
 	_launched = false
+	_finished = false
+	_flight_time = 0.0
+	_tilt_sum = 0.0
+	_tilt_samples = 0
+	_tumbled = false
 	_last_print_time = 0.0
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
+	rotation = Vector3.ZERO
+	angular_damp = 1.2
 	freeze = true
 	sleeping = false
+	_build_visual_fins()
 
 func launch() -> void:
-	if _launched:
+	if _launched or _finished:
 		return
 	_launched = true
 	freeze = false
 	sleeping = false
-	print("Launch started: thrust %.1f N, mass %.1f kg, fuel %.1f, wind %.1f m/s @ %.0f deg" % [config.engine_thrust, mass, _fuel, config.wind_speed, config.wind_direction])
+	print("Launch started: thrust %.1f N, mass %.1f kg, fuel %.1f, wind %.1f m/s @ %.0f deg, fins %d size %.2f" % [config.engine_thrust, mass, _fuel, config.wind_speed, config.wind_direction, config.fin_count, config.fin_size])
 
 func _physics_process(delta: float) -> void:
-	if not _launched:
+	if not _launched or _finished:
 		return
+	_flight_time += delta
 
 	var altitude := maxf(global_position.y, 0.0)
 	var gravity_force := Vector3.DOWN * mass * AeroPhysics.gravity_at(altitude)
@@ -54,6 +96,7 @@ func _physics_process(delta: float) -> void:
 		var area := AeroPhysics.frontal_area(config.rocket_radius)
 		var drag_magnitude := AeroPhysics.drag_force(relative_speed, AIR_DENSITY, DRAG_COEFFICIENT, area)
 		apply_central_force(-relative_velocity.normalized() * drag_magnitude * WIND_FORCE_MULTIPLIER)
+		_apply_airflow_torque(relative_velocity, relative_speed)
 
 	if _fuel > 0.0:
 		var burn := minf(_fuel, FUEL_BURN_RATE * delta)
@@ -62,8 +105,96 @@ func _physics_process(delta: float) -> void:
 
 	max_altitude = maxf(max_altitude, altitude)
 	max_speed = maxf(max_speed, linear_velocity.length())
+	current_tilt = rad_to_deg(global_transform.basis.y.angle_to(Vector3.UP))
+	max_tilt = maxf(max_tilt, current_tilt)
+	_tilt_sum += current_tilt
+	_tilt_samples += 1
+	_check_flight_end(altitude)
 
 	_last_print_time += delta
 	if _last_print_time >= 1.0:
 		_last_print_time = 0.0
 		print("Altitude %.1f m | Speed %.1f m/s | Fuel %.1f | Wind %.1f m/s @ %.0f deg" % [altitude, linear_velocity.length(), _fuel, config.wind_speed, config.wind_direction])
+
+func average_tilt() -> float:
+	return _tilt_sum / float(_tilt_samples) if _tilt_samples > 0 else 0.0
+
+func _check_flight_end(altitude: float) -> void:
+	if _flight_time < MIN_FLIGHT_TIME:
+		return
+	if altitude > 2.0 and current_tilt >= TUMBLE_TILT_DEGREES:
+		_tumbled = true
+	if max_altitude > 2.0 and global_position.y <= GROUND_IMPACT_HEIGHT and linear_velocity.y <= 0.0:
+		var reason := "Flight crashed: rocket tumbled before impact" if _tumbled else "Flight crashed into the ground"
+		_finish_flight(reason)
+
+func _finish_flight(reason: String) -> void:
+	if _finished:
+		return
+	_finished = true
+	_launched = false
+	freeze = true
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+	global_position.y = GROUND_IMPACT_HEIGHT
+	rotation.z = deg_to_rad(75.0)
+	print("Flight finished: %s | Max height %.1f m | Max speed %.1f m/s | Max tilt %.1f deg" % [reason, max_altitude, max_speed, max_tilt])
+	flight_finished.emit(reason)
+
+func _apply_airflow_torque(relative_velocity: Vector3, relative_speed: float) -> void:
+	if relative_speed < MIN_AIRFLOW_SPEED:
+		return
+
+	var nose_dir := global_transform.basis.y.normalized()
+	var flight_dir := relative_velocity.normalized()
+	var misalignment := nose_dir.angle_to(flight_dir)
+	if misalignment < 0.001:
+		return
+
+	var axis := nose_dir.cross(flight_dir)
+	if axis.length() < MIN_TORQUE_AXIS:
+		return
+	axis = axis.normalized()
+
+	var sideways_airflow := clampf(1.0 - absf(nose_dir.dot(flight_dir)), 0.0, 1.0)
+	var fin_power := float(config.fin_count) * config.fin_size
+	var fin_deficit := clampf(1.0 - fin_power / 1.6, 0.0, 1.0)
+	var wind_ratio := clampf(config.wind_speed / 40.0, 0.0, 1.0)
+
+	var destabilizing := misalignment * relative_speed * sideways_airflow * fin_deficit * wind_ratio * DESTABILIZING_TORQUE
+	if destabilizing > 0.0:
+		apply_torque(-axis * destabilizing)
+
+	var stabilizing := misalignment * relative_speed * fin_power * STABILIZING_TORQUE
+	if stabilizing > 0.0:
+		apply_torque(axis * stabilizing)
+
+func _build_visual_fins() -> void:
+	if not is_node_ready():
+		return
+
+	for child in fin_holder.get_children():
+		child.queue_free()
+
+	if config.fin_count <= 0:
+		return
+
+	var fin_height := clampf(config.fin_size * 1.2, 0.15, 1.2)
+	var fin_length := clampf(config.fin_size * 0.9, 0.12, 0.9)
+	var fin_thickness := 0.06
+	for i in range(config.fin_count):
+		var angle := TAU * float(i) / float(config.fin_count)
+		var radial := Vector3(cos(angle), 0.0, sin(angle))
+		var tangent := Vector3(-sin(angle), 0.0, cos(angle))
+
+		var fin := MeshInstance3D.new()
+		fin.name = "Fin%d" % (i + 1)
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(fin_length, fin_height, fin_thickness)
+		fin.mesh = mesh
+		fin.material_override = _fin_material
+		fin_holder.add_child(fin)
+
+		var center := radial * (FIN_BODY_RADIUS + fin_length * 0.5)
+		center.y = FIN_BASE_HEIGHT + fin_height * 0.5
+		fin.transform = Transform3D(Basis(radial, Vector3.UP, tangent), center)
