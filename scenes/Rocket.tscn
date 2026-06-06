@@ -37,6 +37,9 @@ freeze = true
 can_sleep = false
 angular_damp = 1.0
 script = ExtResource("1_controller")
+body_part_path = NodePath("BodyMesh")
+nose_part_path = NodePath("NoseMesh")
+engine_part_path = NodePath("NozzleMesh")
 
 [node name="BodyMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)

@@ -28,8 +28,40 @@ const MATERIALS: Dictionary = {
 	},
 }
 
+const CARBON_NORMAL_PATH: String = "res://assets/materials/carbon_weave_normal.png"
+
+const _PBR: Dictionary = {
+	"aluminum": {"metallic": 1.0, "roughness": 0.35},
+	"steel": {"metallic": 1.0, "roughness": 0.45},
+	"carbon_fiber": {"metallic": 0.3, "roughness": 0.35},
+	"titanium": {"metallic": 1.0, "roughness": 0.55},
+	"plastic": {"metallic": 0.0, "roughness": 0.65},
+}
+
+var _material_cache: Dictionary = {}
+
 func get_material(material_name: String) -> Dictionary:
 	return MATERIALS.get(material_name, MATERIALS["aluminum"])
+
+func get_surface_material(material_name: String) -> StandardMaterial3D:
+	if _material_cache.has(material_name):
+		return _material_cache[material_name]
+
+	var stats: Dictionary = get_material(material_name)
+	var pbr: Dictionary = _PBR.get(material_name, {"metallic": 0.4, "roughness": 0.5})
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = stats.get("color", Color(0.8, 0.82, 0.85))
+	mat.metallic = pbr["metallic"]
+	mat.roughness = pbr["roughness"]
+	mat.metallic_specular = 0.5
+
+	if material_name == "carbon_fiber" and ResourceLoader.exists(CARBON_NORMAL_PATH):
+		mat.normal_enabled = true
+		mat.normal_texture = load(CARBON_NORMAL_PATH)
+		mat.uv1_scale = Vector3(6.0, 6.0, 6.0)
+
+	_material_cache[material_name] = mat
+	return mat
 
 func material_names() -> Array:
 	return MATERIALS.keys()

@@ -18,6 +18,9 @@ const TUMBLE_TILT_DEGREES: float = 82.0
 const GROUND_IMPACT_HEIGHT: float = 0.25
 
 @export var use_meshy_visual_model: bool = false
+@export var body_part_path: NodePath
+@export var nose_part_path: NodePath
+@export var engine_part_path: NodePath
 
 var config: RocketConfig = RocketConfig.new()
 var max_altitude: float = 0.0
@@ -30,6 +33,9 @@ var max_tilt: float = 0.0
 @onready var nose_mesh: MeshInstance3D = $NoseMesh
 @onready var nozzle_mesh: MeshInstance3D = $NozzleMesh
 @onready var visual_model_holder: Node3D = $VisualModelHolder
+@onready var body_part: Node = get_node_or_null(body_part_path)
+@onready var nose_part: Node = get_node_or_null(nose_part_path)
+@onready var engine_part: Node = get_node_or_null(engine_part_path)
 
 var _fuel: float = 0.0
 var _launched: bool = false
@@ -50,7 +56,7 @@ func preview_config(new_config: RocketConfig) -> void:
 	config.recalculate_masses()
 	mass = config.total_launch_mass
 	_apply_visual_model_mode()
-	_apply_body_material_visual()
+	_apply_materials()
 	_build_visual_fins()
 
 func preview_fins(fin_data: FinData) -> void:
@@ -91,7 +97,7 @@ func setup(new_config: RocketConfig) -> void:
 	freeze = true
 	sleeping = false
 	_apply_visual_model_mode()
-	_apply_body_material_visual()
+	_apply_materials()
 	_build_visual_fins()
 
 func launch() -> void:
@@ -220,11 +226,7 @@ func _build_visual_fins() -> void:
 	if mesh == null:
 		return
 
-	var mat_data: Dictionary = MaterialDatabase.get_material(config.fin_material_name)
-	var fin_mat := StandardMaterial3D.new()
-	fin_mat.albedo_color = mat_data.get("color", Color(0.8, 0.82, 0.85))
-	fin_mat.metallic = 0.3
-	fin_mat.roughness = 0.5
+	var fin_mat := MaterialDatabase.get_surface_material(config.fin_material_name).duplicate() as StandardMaterial3D
 	fin_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	for i in range(config.fin_count):
@@ -235,8 +237,8 @@ func _build_visual_fins() -> void:
 		var fin := MeshInstance3D.new()
 		fin.name = "Fin%d" % (i + 1)
 		fin.mesh = mesh
-		fin.material_override = fin_mat
 		fin_holder.add_child(fin)
+		_skin(fin, fin_mat)
 
 		fin.position = radial * FIN_BODY_RADIUS
 		fin.position.y = FIN_BASE_HEIGHT
@@ -255,15 +257,23 @@ func _body_drag_modifier() -> float:
 	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
 	return float(mat_data.get("drag_modifier", 0.0))
 
-func _apply_body_material_visual() -> void:
-	if not is_node_ready() or body_mesh == null or use_meshy_visual_model:
-		return
-	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
-	var body_mat := StandardMaterial3D.new()
-	body_mat.albedo_color = mat_data.get("color", Color(0.82, 0.86, 0.92))
-	body_mat.metallic = 0.25
-	body_mat.roughness = 0.35
-	body_mesh.material_override = body_mat
+func _skin(node: Node, mat: StandardMaterial3D) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.mesh:
+			for s in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(s, mat)
+	for child in node.get_children():
+		_skin(child, mat)
+
+func _apply_materials() -> void:
+	var body_mat: StandardMaterial3D = MaterialDatabase.get_surface_material(config.body_material_name)
+	if body_part:
+		_skin(body_part, body_mat)
+	if nose_part:
+		_skin(nose_part, body_mat)
+	if engine_part:
+		_skin(engine_part, body_mat)
 
 func _apply_visual_model_mode() -> void:
 	if not is_node_ready():
