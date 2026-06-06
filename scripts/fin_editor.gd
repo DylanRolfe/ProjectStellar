@@ -41,7 +41,7 @@ const DEFAULT_POINTS: Array = [
 @onready var area_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/Area
 
 var points: Array[Vector3] = []
-var shape_points_normalized: Array[Vector2] = []
+var shape_points: Array[Vector2] = []
 var handle_nodes: Array[MeshInstance3D] = []
 var selected_index: int = -1
 var is_dragging: bool = false
@@ -76,15 +76,16 @@ func set_editor_active(active: bool) -> void:
 	if active:
 		camera.current = true
 
+func get_current_fin_data() -> FinData:
+	return fin_data
+
 func _reset_points() -> void:
 	points.clear()
 	for p in DEFAULT_POINTS:
 		points.append(p)
-	shape_points_normalized = [
-		Vector2(0.00, 0.00), Vector2(0.50, 0.00), Vector2(1.00, 0.00),
-		Vector2(0.00, 0.50), Vector2(0.55, 0.45), Vector2(1.00, 0.55),
-		Vector2(0.00, 1.00), Vector2(0.45, 1.00), Vector2(0.82, 1.00),
-	]
+	shape_points.clear()
+	for p in FinData.get_default_shape_points():
+		shape_points.append(p)
 
 func _configure_preview_view() -> void:
 	rocket_preview.position = Vector3(0.55, 0.0, 0.0)
@@ -125,7 +126,7 @@ func _build_shape_step_ui() -> void:
 	vbox.add_child(title)
 
 	var instructions := Label.new()
-	instructions.text = "Drag the 9 points to shape the fin surface."
+	instructions.text = "Root edge locked to rocket. Drag the outer points to shape the fin."
 	instructions.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(instructions)
 
@@ -205,7 +206,7 @@ func _update_handle_positions() -> void:
 		handle_nodes[i].visible = false
 
 func _regenerate_fin_mesh() -> void:
-	fin_data.set_shape_points_from_normalized(shape_points_normalized)
+	fin_data.set_shape_points(shape_points)
 	points.clear()
 	for p in fin_data.control_points:
 		points.append(p)
@@ -278,8 +279,8 @@ func _update_rocket_preview() -> void:
 		fin_inst.position.y = 0.45
 
 		var basis := Basis()
-		basis.x = Vector3.DOWN
-		basis.y = radial
+		basis.x = radial
+		basis.y = Vector3.UP
 		basis.z = tangent
 		fin_inst.basis = basis
 		preview_fins.add_child(fin_inst)
@@ -299,18 +300,20 @@ func _apply_demo_preset(preset_name: String) -> void:
 	match preset_name:
 		"bad":
 			shape_canvas.set_points([
-				Vector2(0.00, 0.00), Vector2(0.28, 0.00), Vector2(0.48, 0.00),
-				Vector2(0.00, 0.40), Vector2(0.30, 0.38), Vector2(0.42, 0.42),
-				Vector2(0.00, 0.78), Vector2(0.20, 0.80), Vector2(0.28, 0.80),
+				Vector2(0.0, 0.35),
+				Vector2(0.35, 0.15),
+				Vector2(0.30, -0.12),
+				Vector2(0.0, -0.35),
 			])
 			fin_count_slider.value = 1.0
 			thickness_slider.value = 0.015
 			_select_material("plastic")
 		"good":
 			shape_canvas.set_points([
-				Vector2(0.00, 0.00), Vector2(0.54, 0.00), Vector2(1.00, 0.00),
-				Vector2(0.00, 0.52), Vector2(0.58, 0.48), Vector2(0.96, 0.55),
-				Vector2(0.00, 1.00), Vector2(0.50, 1.00), Vector2(0.82, 1.00),
+				Vector2(0.0, 0.35),
+				Vector2(0.95, 0.30),
+				Vector2(0.85, -0.30),
+				Vector2(0.0, -0.35),
 			])
 			fin_count_slider.value = 4.0
 			thickness_slider.value = 0.055
@@ -322,7 +325,7 @@ func _apply_demo_preset(preset_name: String) -> void:
 
 func _on_continue() -> void:
 	fin_data = FinData.new()
-	fin_data.set_shape_points_from_normalized(shape_points_normalized)
+	fin_data.set_shape_points(shape_points)
 	fin_data.thickness = thickness_slider.value
 	fin_data.fin_count = int(fin_count_slider.value)
 	fin_data.material_name = MaterialDatabase.material_names()[material_option.selected]
@@ -334,9 +337,9 @@ func _on_continue() -> void:
 	fins_confirmed.emit(fin_data)
 
 func _on_shape_points_changed(new_points: Array[Vector2]) -> void:
-	shape_points_normalized.clear()
-	for p in new_points:
-		shape_points_normalized.append(p)
+	shape_points.clear()
+	for p in FinData.sanitize_shape_points(new_points):
+		shape_points.append(p)
 	_rebuild_all()
 
 func _select_material(material_name: String) -> void:

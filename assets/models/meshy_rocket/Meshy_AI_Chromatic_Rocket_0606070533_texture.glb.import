@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://sy2pmka7txt3"
-path="res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture.glb-11a3a73e040bcb41eef6011b9b4b71e3.scn"
+path="res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture.glb-d14351d21a623f1cbadc2c69e7fc082f.scn"
 
 [deps]
 
-source_file="res://Meshy_AI_Chromatic_Rocket_0606070533_texture.glb"
-dest_files=["res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture.glb-11a3a73e040bcb41eef6011b9b4b71e3.scn"]
+source_file="res://assets/models/meshy_rocket/Meshy_AI_Chromatic_Rocket_0606070533_texture.glb"
+dest_files=["res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture.glb-d14351d21a623f1cbadc2c69e7fc082f.scn"]
 
 [params]
 

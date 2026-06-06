@@ -16,7 +16,7 @@ script = ExtResource("1_ui")
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 376.0
-offset_bottom = 420.0
+offset_bottom = 500.0
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
@@ -33,25 +33,25 @@ theme_override_constants/separation = 10
 layout_mode = 2
 text = "Rocket Controls"
 
-[node name="MassRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+[node name="PayloadMassRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="MassLabel" type="Label" parent="Panel/Margin/VBox/MassRow"]
+[node name="PayloadMassLabel" type="Label" parent="Panel/Margin/VBox/PayloadMassRow"]
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
-text = "Mass"
+text = "Payload"
 
-[node name="MassSlider" type="HSlider" parent="Panel/Margin/VBox/MassRow"]
+[node name="PayloadMassSlider" type="HSlider" parent="Panel/Margin/VBox/PayloadMassRow"]
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 1.0
+min_value = 0.0
 max_value = 200.0
 step = 1.0
 value = 20.0
 
-[node name="MassValueLabel" type="Label" parent="Panel/Margin/VBox/MassRow"]
+[node name="PayloadMassValueLabel" type="Label" parent="Panel/Margin/VBox/PayloadMassRow"]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "20 kg"
@@ -162,6 +162,18 @@ text = "Body"
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="ShellMassLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Shell mass: 0.0 kg"
+
+[node name="FinMassLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Fin mass: 0.0 kg"
+
+[node name="TotalMassLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Total launch mass: 0.0 kg"
 
 [node name="FinCountRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2

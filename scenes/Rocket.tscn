@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/rocket_controller.gd" id="1_controller"]
+[ext_resource type="PackedScene" path="res://assets/models/meshy_rocket/Meshy_AI_Chromatic_Rocket_0606070533_texture.glb" id="2_meshy_rocket"]
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_body"]
 top_radius = 0.28
@@ -51,6 +52,12 @@ surface_material_override/0 = SubResource("StandardMaterial3D_nose")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.125, 0)
 mesh = SubResource("CylinderMesh_nozzle")
 surface_material_override/0 = SubResource("StandardMaterial3D_nose")
+
+[node name="VisualModelHolder" type="Node3D" parent="."]
+visible = false
+
+[node name="MeshyRocketModel" parent="VisualModelHolder" instance=ExtResource("2_meshy_rocket")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)

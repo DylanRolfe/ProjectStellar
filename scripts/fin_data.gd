@@ -1,25 +1,29 @@
 class_name FinData
 extends Resource
 
+const ROOT_TOP_INDEX: int = 0
+const TIP_TOP_INDEX: int = 1
+const TIP_BOTTOM_INDEX: int = 2
+const ROOT_BOTTOM_INDEX: int = 3
+const MIN_TIP_X: float = 0.15
+const MAX_TIP_X: float = 1.25
+const MIN_Y: float = -0.75
+const MAX_Y: float = 0.75
+const MIN_CHORD_GAP: float = 0.08
+const FIN_MASS_SCALE: float = 8.0
+
 var control_points: Array[Vector3] = [
-	Vector3(0.0, 0.0, 0.0),
-	Vector3(0.4, 0.0, 0.0),
-	Vector3(0.05, 0.3, 0.0),
-	Vector3(0.3, 0.3, 0.0),
+	Vector3(0.0, 0.35, 0.0),
+	Vector3(0.75, 0.25, 0.0),
+	Vector3(0.75, -0.25, 0.0),
+	Vector3(0.0, -0.35, 0.0),
 ]
 
-# Future 2D shape editor data. The current mesh generator still consumes
-# control_points, but this keeps a simple corner-point model ready for drag UI.
 var shape_points: Array[Vector2] = [
-	Vector2(0.0, 0.0),
-	Vector2(0.24, 0.0),
-	Vector2(0.48, 0.0),
-	Vector2(0.0, 0.21),
-	Vector2(0.26, 0.19),
-	Vector2(0.48, 0.23),
-	Vector2(0.0, 0.42),
-	Vector2(0.22, 0.42),
-	Vector2(0.39, 0.42),
+	Vector2(0.0, 0.35),
+	Vector2(0.75, 0.25),
+	Vector2(0.75, -0.25),
+	Vector2(0.0, -0.35),
 ]
 
 var thickness: float = 0.04
@@ -34,18 +38,38 @@ var fin_tip_chord: float = 0.25
 
 static func get_default_shape_points() -> Array[Vector2]:
 	return [
-		Vector2(0.0, 0.0),
-		Vector2(0.24, 0.0),
-		Vector2(0.48, 0.0),
-		Vector2(0.0, 0.21),
-		Vector2(0.26, 0.19),
-		Vector2(0.48, 0.23),
-		Vector2(0.0, 0.42),
-		Vector2(0.22, 0.42),
-		Vector2(0.39, 0.42),
+		Vector2(0.0, 0.35),
+		Vector2(0.75, 0.25),
+		Vector2(0.75, -0.25),
+		Vector2(0.0, -0.35),
 	]
 
+static func sanitize_shape_points(raw_points: Array[Vector2]) -> Array[Vector2]:
+	var sanitized := get_default_shape_points()
+	for i in range(min(raw_points.size(), sanitized.size())):
+		sanitized[i] = raw_points[i]
+
+	sanitized[ROOT_TOP_INDEX] = Vector2(0.0, 0.35)
+	sanitized[ROOT_BOTTOM_INDEX] = Vector2(0.0, -0.35)
+
+	var tip_top := sanitized[TIP_TOP_INDEX]
+	var tip_bottom := sanitized[TIP_BOTTOM_INDEX]
+	tip_top.x = clampf(tip_top.x, MIN_TIP_X, MAX_TIP_X)
+	tip_bottom.x = clampf(tip_bottom.x, MIN_TIP_X, MAX_TIP_X)
+	tip_top.y = clampf(tip_top.y, MIN_Y, MAX_Y)
+	tip_bottom.y = clampf(tip_bottom.y, MIN_Y, MAX_Y)
+
+	if tip_top.y <= tip_bottom.y + MIN_CHORD_GAP:
+		var center_y := clampf((tip_top.y + tip_bottom.y) * 0.5, MIN_Y + MIN_CHORD_GAP * 0.5, MAX_Y - MIN_CHORD_GAP * 0.5)
+		tip_top.y = center_y + MIN_CHORD_GAP * 0.5
+		tip_bottom.y = center_y - MIN_CHORD_GAP * 0.5
+
+	sanitized[TIP_TOP_INDEX] = tip_top
+	sanitized[TIP_BOTTOM_INDEX] = tip_bottom
+	return sanitized
+
 func compute_mesh(subdivisions: int = 8) -> Mesh:
+	set_shape_points(shape_points)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
@@ -59,7 +83,7 @@ func compute_mesh(subdivisions: int = 8) -> Mesh:
 		var t := float(j) / float(subdivisions)
 		for i in range(n):
 			var s := float(i) / float(subdivisions)
-			var p := _sample_surface(s, t)
+			var p := _bilinear(s, t)
 			front_verts.append(p + Vector3(0, 0, half_thick))
 			back_verts.append(p + Vector3(0, 0, -half_thick))
 
@@ -150,7 +174,7 @@ func compute_mesh(subdivisions: int = 8) -> Mesh:
 			var b := front_verts[idx + n]
 			var c := front_verts[idx + 1]
 			surface_area += (b - a).cross(c - a).length() * 0.5
-	surface_area *= 2.0
+	surface_area = calculate_surface_area()
 
 	var mesh := st.commit()
 	cached_mesh = mesh
@@ -159,65 +183,46 @@ func compute_mesh(subdivisions: int = 8) -> Mesh:
 
 	return mesh
 
-func set_shape_points_from_normalized(normalized_points: Array[Vector2], width: float = 0.48, height: float = 0.42) -> void:
+func set_shape_points(new_points: Array[Vector2]) -> void:
+	var sanitized_points := sanitize_shape_points(new_points)
 	shape_points.clear()
-	for p in normalized_points:
-		shape_points.append(Vector2(p.x * width, p.y * height))
+	for p in sanitized_points:
+		shape_points.append(p)
 	_update_control_points_from_shape()
 
-func _sample_surface(s: float, t: float) -> Vector3:
-	if shape_points.size() >= 9:
-		var p2 := _quadratic_lattice(s, t)
-		return Vector3(p2.x, p2.y, 0.0)
-	return _bilinear(s, t)
-
-func _quadratic_lattice(s: float, t: float) -> Vector2:
-	var bx: Array[float] = [
-		(1.0 - s) * (1.0 - s),
-		2.0 * (1.0 - s) * s,
-		s * s,
-	]
-	var by: Array[float] = [
-		(1.0 - t) * (1.0 - t),
-		2.0 * (1.0 - t) * t,
-		t * t,
-	]
-	var result := Vector2.ZERO
-	for row in range(3):
-		for col in range(3):
-			result += shape_points[row * 3 + col] * bx[col] * by[row]
-	return result
-
 func _bilinear(s: float, t: float) -> Vector3:
-	var top := control_points[0].lerp(control_points[1], s)
-	var bottom := control_points[2].lerp(control_points[3], s)
+	var top := control_points[ROOT_TOP_INDEX].lerp(control_points[TIP_TOP_INDEX], s)
+	var bottom := control_points[ROOT_BOTTOM_INDEX].lerp(control_points[TIP_BOTTOM_INDEX], s)
 	return top.lerp(bottom, t)
 
 func _update_control_points_from_shape() -> void:
-	if shape_points.size() < 9:
-		return
 	control_points = [
-		Vector3(shape_points[0].x, shape_points[0].y, 0.0),
-		Vector3(shape_points[2].x, shape_points[2].y, 0.0),
-		Vector3(shape_points[6].x, shape_points[6].y, 0.0),
-		Vector3(shape_points[8].x, shape_points[8].y, 0.0),
+		Vector3(shape_points[ROOT_TOP_INDEX].x, shape_points[ROOT_TOP_INDEX].y, 0.0),
+		Vector3(shape_points[TIP_TOP_INDEX].x, shape_points[TIP_TOP_INDEX].y, 0.0),
+		Vector3(shape_points[TIP_BOTTOM_INDEX].x, shape_points[TIP_BOTTOM_INDEX].y, 0.0),
+		Vector3(shape_points[ROOT_BOTTOM_INDEX].x, shape_points[ROOT_BOTTOM_INDEX].y, 0.0),
 	]
 	_update_measurements()
 
 func _update_measurements() -> void:
-	if shape_points.size() >= 9:
-		var min_y := INF
-		var max_y := -INF
-		for p in shape_points:
-			min_y = minf(min_y, p.y)
-			max_y = maxf(max_y, p.y)
-		fin_span = max_y - min_y
-		fin_root_chord = shape_points[2].distance_to(shape_points[0])
-		fin_tip_chord = shape_points[8].distance_to(shape_points[6])
-	else:
-		fin_span = (control_points[2] - control_points[0]).length()
-		fin_root_chord = (control_points[1] - control_points[0]).length()
-		fin_tip_chord = (control_points[3] - control_points[2]).length()
+	fin_span = maxf(shape_points[TIP_TOP_INDEX].x, shape_points[TIP_BOTTOM_INDEX].x)
+	fin_root_chord = shape_points[ROOT_TOP_INDEX].distance_to(shape_points[ROOT_BOTTOM_INDEX])
+	fin_tip_chord = shape_points[TIP_TOP_INDEX].distance_to(shape_points[TIP_BOTTOM_INDEX])
+
+func get_root_edge_points() -> Array[Vector2]:
+	return [shape_points[ROOT_TOP_INDEX], shape_points[ROOT_BOTTOM_INDEX]]
+
+func calculate_surface_area() -> float:
+	var polygon_area := 0.0
+	for i in range(shape_points.size()):
+		var a := shape_points[i]
+		var b := shape_points[(i + 1) % shape_points.size()]
+		polygon_area += a.x * b.y - b.x * a.y
+	return absf(polygon_area) * 0.5
+
+func calculate_fin_mass() -> float:
+	var mat_data: Dictionary = MaterialDatabase.get_material(material_name)
+	return float(fin_count) * calculate_surface_area() * thickness * float(mat_data.get("mass_multiplier", 1.0)) * FIN_MASS_SCALE
 
 func get_config_dict() -> Dictionary:
 	return {

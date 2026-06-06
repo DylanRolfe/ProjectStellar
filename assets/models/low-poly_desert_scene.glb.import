@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bs4c3uv4ixtmc"
-path="res://.godot/imported/low-poly_desert_scene.glb-6461fb730630b6bcca3937794c3383a3.scn"
+uid="uid://bxgjl4efc1u1j"
+path="res://.godot/imported/low-poly_desert_scene.glb-2ecf9e290804431840b904bf6ba000a8.scn"
 
 [deps]
 
-source_file="res://low-poly_desert_scene.glb"
-dest_files=["res://.godot/imported/low-poly_desert_scene.glb-6461fb730630b6bcca3937794c3383a3.scn"]
+source_file="res://assets/models/low-poly_desert_scene.glb"
+dest_files=["res://.godot/imported/low-poly_desert_scene.glb-2ecf9e290804431840b904bf6ba000a8.scn"]
 
 [params]
 

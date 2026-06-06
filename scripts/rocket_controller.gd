@@ -17,6 +17,8 @@ const MIN_FLIGHT_TIME: float = 1.0
 const TUMBLE_TILT_DEGREES: float = 82.0
 const GROUND_IMPACT_HEIGHT: float = 0.25
 
+@export var use_meshy_visual_model: bool = false
+
 var config: RocketConfig = RocketConfig.new()
 var max_altitude: float = 0.0
 var max_speed: float = 0.0
@@ -25,6 +27,9 @@ var max_tilt: float = 0.0
 
 @onready var fin_holder: Node3D = $FinHolder
 @onready var body_mesh: MeshInstance3D = $BodyMesh
+@onready var nose_mesh: MeshInstance3D = $NoseMesh
+@onready var nozzle_mesh: MeshInstance3D = $NozzleMesh
+@onready var visual_model_holder: Node3D = $VisualModelHolder
 
 var _fuel: float = 0.0
 var _launched: bool = false
@@ -42,7 +47,9 @@ func preview_config(new_config: RocketConfig) -> void:
 	if _launched:
 		return
 	config = new_config
-	mass = _effective_body_mass()
+	config.recalculate_masses()
+	mass = config.total_launch_mass
+	_apply_visual_model_mode()
 	_apply_body_material_visual()
 	_build_visual_fins()
 
@@ -58,11 +65,13 @@ func preview_fins(fin_data: FinData) -> void:
 	config.fin_tip_chord = fin_data.fin_tip_chord
 	config.fin_surface_area = fin_data.surface_area
 	config.fin_size = maxf(fin_data.fin_span * 0.3, 0.1)
+	config.recalculate_masses()
 	_build_visual_fins()
 
 func setup(new_config: RocketConfig) -> void:
 	config = new_config
-	mass = _effective_body_mass()
+	config.recalculate_masses()
+	mass = config.total_launch_mass
 	_fuel = config.fuel_amount
 	max_altitude = 0.0
 	max_speed = 0.0
@@ -81,6 +90,7 @@ func setup(new_config: RocketConfig) -> void:
 	angular_damp = 1.2
 	freeze = true
 	sleeping = false
+	_apply_visual_model_mode()
 	_apply_body_material_visual()
 	_build_visual_fins()
 
@@ -114,6 +124,7 @@ func _physics_process(delta: float) -> void:
 	if _fuel > 0.0:
 		var burn := minf(_fuel, FUEL_BURN_RATE * delta)
 		_fuel -= burn
+		mass = config.dry_mass + _fuel * RocketConfig.FUEL_MASS_FACTOR
 		apply_central_force(global_transform.basis.y.normalized() * config.engine_thrust)
 
 	max_altitude = maxf(max_altitude, altitude)
@@ -180,6 +191,10 @@ func _apply_airflow_torque(relative_velocity: Vector3, relative_speed: float) ->
 	var sideways_airflow := clampf(1.0 - absf(nose_dir.dot(flight_dir)), 0.0, 1.0)
 	var effective_area := config.fin_surface_area if config.fin_surface_area > 0.0 else config.fin_size
 	var fin_power := float(config.fin_count) * effective_area
+	var fin_mat_data: Dictionary = MaterialDatabase.get_material(config.fin_material_name)
+	var fin_strength := float(fin_mat_data.get("strength", 0.6))
+	var stability_bonus := float(fin_mat_data.get("stability_bonus", 0.0))
+	fin_power *= maxf(0.25, fin_strength + stability_bonus)
 	var fin_deficit := clampf(1.0 - fin_power / 1.6, 0.0, 1.0)
 	var wind_ratio := clampf(config.wind_speed / 40.0, 0.0, 1.0)
 
@@ -227,21 +242,21 @@ func _build_visual_fins() -> void:
 		fin.position.y = FIN_BASE_HEIGHT
 
 		var basis := Basis()
-		basis.x = Vector3.DOWN
-		basis.y = radial
+		basis.x = radial
+		basis.y = Vector3.UP
 		basis.z = tangent
 		fin.basis = basis
 
 func _effective_body_mass() -> float:
 	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
-	return config.rocket_mass * float(mat_data.get("mass_multiplier", 1.0))
+	return config.body_shell_mass if config.body_shell_mass > 0.0 else config.rocket_mass * float(mat_data.get("mass_multiplier", 1.0))
 
 func _body_drag_modifier() -> float:
 	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
 	return float(mat_data.get("drag_modifier", 0.0))
 
 func _apply_body_material_visual() -> void:
-	if not is_node_ready() or body_mesh == null:
+	if not is_node_ready() or body_mesh == null or use_meshy_visual_model:
 		return
 	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
 	var body_mat := StandardMaterial3D.new()
@@ -249,3 +264,11 @@ func _apply_body_material_visual() -> void:
 	body_mat.metallic = 0.25
 	body_mat.roughness = 0.35
 	body_mesh.material_override = body_mat
+
+func _apply_visual_model_mode() -> void:
+	if not is_node_ready():
+		return
+	body_mesh.visible = not use_meshy_visual_model
+	nose_mesh.visible = not use_meshy_visual_model
+	nozzle_mesh.visible = not use_meshy_visual_model
+	visual_model_holder.visible = use_meshy_visual_model

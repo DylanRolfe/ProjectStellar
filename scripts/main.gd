@@ -29,6 +29,7 @@ func _ready() -> void:
 	simulation_manager.results_ready.connect(_on_results_ready)
 
 	_set_app_state(AppState.EDITING_FINS)
+	_on_fin_data_changed(fin_editor.get_current_fin_data())
 
 func _on_fins_confirmed(fin_data: FinData) -> void:
 	var config := _build_config_from_fin_data(fin_data)
@@ -36,6 +37,7 @@ func _on_fins_confirmed(fin_data: FinData) -> void:
 
 	rocket.setup(config)
 	rocket.preview_config(config)
+	ui.set_base_config(rocket.config)
 	if _pending_demo_preset != "":
 		ui.apply_demo_preset(_pending_demo_preset)
 		_merge_launch_settings_into_rocket_config(ui.build_config())
@@ -63,7 +65,6 @@ func _on_config_changed(slider_config: RocketConfig) -> void:
 
 func _merge_launch_settings_into_rocket_config(slider_config: RocketConfig) -> void:
 	var rc := rocket.config
-	rc.rocket_mass = slider_config.rocket_mass
 	rc.engine_thrust = slider_config.engine_thrust
 	rc.fuel_amount = slider_config.fuel_amount
 	rc.wind_speed = slider_config.wind_speed
@@ -71,6 +72,8 @@ func _merge_launch_settings_into_rocket_config(slider_config: RocketConfig) -> v
 	rc.rocket_radius = slider_config.rocket_radius
 	rc.rocket_height = slider_config.rocket_height
 	rc.body_material_name = slider_config.body_material_name
+	rc.payload_mass = slider_config.payload_mass
+	rc.recalculate_masses()
 
 func _on_reset_requested() -> void:
 	get_tree().reload_current_scene()
@@ -122,6 +125,7 @@ func _build_config_from_fin_data(fin_data: FinData) -> RocketConfig:
 	config.fin_tip_chord = fin_data.fin_tip_chord
 	config.fin_surface_area = fin_data.surface_area
 	config.fin_size = maxf(fin_data.fin_span * 0.3, 0.1)
+	config.recalculate_masses()
 	return config
 
 func _toggle_fullscreen() -> void:
