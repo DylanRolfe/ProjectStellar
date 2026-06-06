@@ -13,7 +13,7 @@ Project Stellar is a 3D rocket fin and wing simulator. A user picks a rocket con
 
 ## 2. MVP definition
 
-This is the smallest version that is actually demo-worthy. Build this first, in order, and do not start polish until every box below is checked. Hi again.
+This is the smallest version that is actually demo-worthy. Build this first, in order, and do not start polish until every box below is checked.
 
 **MVP checklist**
 
