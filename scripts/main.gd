@@ -14,15 +14,14 @@ enum AppState {
 @onready var sim_camera: Camera3D = $Camera3D
 @onready var ui_layer: CanvasLayer = $UILayer
 
-var _pending_demo_preset: String = ""
+const MAIN_SCENE_PATH: String = "res://scenes/Main.tscn"
+
 var _app_state: int = AppState.EDITING_FINS
 
 func _ready() -> void:
 	fin_editor.fins_confirmed.connect(_on_fins_confirmed)
 	if fin_editor.has_signal("fin_data_changed"):
 		fin_editor.fin_data_changed.connect(_on_fin_data_changed)
-	if fin_editor.has_signal("demo_preset_selected"):
-		fin_editor.demo_preset_selected.connect(_on_demo_preset_selected)
 	ui.launch_requested.connect(_on_launch_requested)
 	ui.reset_requested.connect(_on_reset_requested)
 	ui.config_changed.connect(_on_config_changed)
@@ -38,10 +37,6 @@ func _on_fins_confirmed(fin_data: FinData) -> void:
 	rocket.setup(config)
 	rocket.preview_config(config)
 	ui.set_base_config(rocket.config)
-	if _pending_demo_preset != "":
-		ui.apply_demo_preset(_pending_demo_preset)
-		_merge_launch_settings_into_rocket_config(ui.build_config())
-		rocket.preview_config(rocket.config)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventKey:
@@ -76,10 +71,8 @@ func _merge_launch_settings_into_rocket_config(slider_config: RocketConfig) -> v
 	rc.recalculate_masses()
 
 func _on_reset_requested() -> void:
-	get_tree().reload_current_scene()
-
-func _on_demo_preset_selected(preset_name: String) -> void:
-	_pending_demo_preset = preset_name
+	get_tree().paused = false
+	get_tree().call_deferred("change_scene_to_file", MAIN_SCENE_PATH)
 
 func _on_fin_data_changed(fin_data: FinData) -> void:
 	if _app_state != AppState.EDITING_FINS:
@@ -103,16 +96,19 @@ func _set_app_state(new_state: int) -> void:
 			ui_layer.visible = true
 			rocket.visible = true
 			sim_camera.current = true
+			ui.set_hud_mode(false)
 		AppState.IN_FLIGHT:
 			fin_editor.set_editor_active(false)
 			ui_layer.visible = true
 			rocket.visible = true
 			sim_camera.current = true
+			ui.set_hud_mode(true)
 		AppState.RESULTS:
 			fin_editor.set_editor_active(false)
 			ui_layer.visible = true
 			rocket.visible = true
 			sim_camera.current = true
+			ui.set_hud_mode(true)
 
 func _build_config_from_fin_data(fin_data: FinData) -> RocketConfig:
 	var config := RocketConfig.new()

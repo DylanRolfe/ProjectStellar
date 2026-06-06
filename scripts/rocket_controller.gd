@@ -24,6 +24,7 @@ var current_tilt: float = 0.0
 var max_tilt: float = 0.0
 
 @onready var fin_holder: Node3D = $FinHolder
+@onready var engine_flame: RocketFlame = $EngineFlame
 
 var _fuel: float = 0.0
 var _launched: bool = false
@@ -93,6 +94,8 @@ func launch() -> void:
 	_launched = true
 	freeze = false
 	sleeping = false
+	engine_flame.set_thrust_factor(config.engine_thrust / 5000.0)
+	engine_flame.emitting = true
 	print("Launch started: thrust %.1f N, mass %.1f kg, fuel %.1f, wind %.1f m/s @ %.0f deg, fins %d size %.2f" % [config.engine_thrust, mass, _fuel, config.wind_speed, config.wind_direction, config.fin_count, config.fin_size])
 
 func _physics_process(delta: float) -> void:
@@ -162,6 +165,7 @@ func _finish_flight(reason: String) -> void:
 	_finished = true
 	_launched = false
 	freeze = true
+	engine_flame.stop()
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 	global_position.y = GROUND_IMPACT_HEIGHT
