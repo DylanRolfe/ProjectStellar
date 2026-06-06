@@ -123,20 +123,6 @@ layout_mode = 2
 text = "Area: 0.000 m²"
 theme_override_font_sizes/font_size = 11
 
-[node name="PresetRow" type="HBoxContainer" parent="CanvasLayer/Panel/Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BadPresetButton" type="Button" parent="CanvasLayer/Panel/Margin/VBox/PresetRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Bad Rocket"
-
-[node name="GoodPresetButton" type="Button" parent="CanvasLayer/Panel/Margin/VBox/PresetRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Good Rocket"
-
 [node name="ContinueButton" type="Button" parent="CanvasLayer/Panel/Margin/VBox"]
 layout_mode = 2
 text = "Continue to Launch"
