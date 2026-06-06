@@ -24,6 +24,7 @@ var current_tilt: float = 0.0
 var max_tilt: float = 0.0
 
 @onready var fin_holder: Node3D = $FinHolder
+@onready var body_mesh: MeshInstance3D = $BodyMesh
 
 var _fuel: float = 0.0
 var _launched: bool = false
@@ -41,12 +42,27 @@ func preview_config(new_config: RocketConfig) -> void:
 	if _launched:
 		return
 	config = new_config
-	mass = config.rocket_mass
+	mass = _effective_body_mass()
+	_apply_body_material_visual()
+	_build_visual_fins()
+
+func preview_fins(fin_data: FinData) -> void:
+	if _launched:
+		return
+	config.fin_count = fin_data.fin_count
+	config.fin_mesh = fin_data.cached_mesh
+	config.fin_material_name = fin_data.material_name
+	config.fin_thickness = fin_data.thickness
+	config.fin_span = fin_data.fin_span
+	config.fin_root_chord = fin_data.fin_root_chord
+	config.fin_tip_chord = fin_data.fin_tip_chord
+	config.fin_surface_area = fin_data.surface_area
+	config.fin_size = maxf(fin_data.fin_span * 0.3, 0.1)
 	_build_visual_fins()
 
 func setup(new_config: RocketConfig) -> void:
 	config = new_config
-	mass = config.rocket_mass
+	mass = _effective_body_mass()
 	_fuel = config.fuel_amount
 	max_altitude = 0.0
 	max_speed = 0.0
@@ -65,6 +81,7 @@ func setup(new_config: RocketConfig) -> void:
 	angular_damp = 1.2
 	freeze = true
 	sleeping = false
+	_apply_body_material_visual()
 	_build_visual_fins()
 
 func launch() -> void:
@@ -89,7 +106,8 @@ func _physics_process(delta: float) -> void:
 	var relative_speed := relative_velocity.length()
 	if relative_speed > 0.01:
 		var area := AeroPhysics.frontal_area(config.rocket_radius)
-		var drag_magnitude := AeroPhysics.drag_force(relative_speed, AIR_DENSITY, DRAG_COEFFICIENT, area)
+		var drag_coefficient := maxf(0.4, DRAG_COEFFICIENT + _body_drag_modifier())
+		var drag_magnitude := AeroPhysics.drag_force(relative_speed, AIR_DENSITY, drag_coefficient, area)
 		apply_central_force(-relative_velocity.normalized() * drag_magnitude * WIND_FORCE_MULTIPLIER)
 		_apply_airflow_torque(relative_velocity, relative_speed)
 
@@ -114,13 +132,21 @@ func _physics_process(delta: float) -> void:
 func average_tilt() -> float:
 	return _tilt_sum / float(_tilt_samples) if _tilt_samples > 0 else 0.0
 
+func flight_time() -> float:
+	return _flight_time
+
+func force_finish(reason: String) -> void:
+	_finish_flight(reason)
+
 func _check_flight_end(altitude: float) -> void:
 	if _flight_time < MIN_FLIGHT_TIME:
 		return
 	if altitude > 2.0 and current_tilt >= TUMBLE_TILT_DEGREES:
 		_tumbled = true
+		_finish_flight("Lost control: rocket tumbled past %.0f degrees" % TUMBLE_TILT_DEGREES)
+		return
 	if max_altitude > 2.0 and global_position.y <= GROUND_IMPACT_HEIGHT and linear_velocity.y <= 0.0:
-		var reason := "Flight crashed: rocket tumbled before impact" if _tumbled else "Flight crashed into the ground"
+		var reason := "Flight failed: rocket tumbled before impact" if _tumbled else "Flight complete: returned to the ground"
 		_finish_flight(reason)
 
 func _finish_flight(reason: String) -> void:
@@ -205,3 +231,21 @@ func _build_visual_fins() -> void:
 		basis.y = radial
 		basis.z = tangent
 		fin.basis = basis
+
+func _effective_body_mass() -> float:
+	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
+	return config.rocket_mass * float(mat_data.get("mass_multiplier", 1.0))
+
+func _body_drag_modifier() -> float:
+	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
+	return float(mat_data.get("drag_modifier", 0.0))
+
+func _apply_body_material_visual() -> void:
+	if not is_node_ready() or body_mesh == null:
+		return
+	var mat_data: Dictionary = MaterialDatabase.get_material(config.body_material_name)
+	var body_mat := StandardMaterial3D.new()
+	body_mat.albedo_color = mat_data.get("color", Color(0.82, 0.86, 0.92))
+	body_mat.metallic = 0.25
+	body_mat.roughness = 0.35
+	body_mesh.material_override = body_mat

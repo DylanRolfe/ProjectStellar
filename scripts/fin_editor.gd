@@ -2,10 +2,16 @@ class_name FinEditor
 extends Node3D
 
 signal fins_confirmed(fin_data: FinData)
+signal fin_data_changed(fin_data: FinData)
+signal demo_preset_selected(preset_name: String)
 
 const HANDLE_RADIUS: float = 0.035
 const PICK_THRESHOLD: float = 0.08
 const SUBDIVISIONS: int = 10
+const ORBIT_SENSITIVITY: float = 0.008
+const MIN_CAMERA_DISTANCE: float = 3.0
+const MAX_CAMERA_DISTANCE: float = 12.0
+const FinShapeCanvasScene = preload("res://scripts/fin_shape_canvas.gd")
 const DEFAULT_POINTS: Array = [
 	Vector3(0.0, 0.0, 0.0),
 	Vector3(0.4, 0.0, 0.0),
@@ -19,12 +25,15 @@ const DEFAULT_POINTS: Array = [
 @onready var rocket_preview: Node3D = $RocketPreview
 @onready var preview_body: MeshInstance3D = $RocketPreview/Body
 @onready var preview_fins: Node3D = $RocketPreview/PreviewFins
+@onready var editor_canvas: CanvasLayer = $CanvasLayer
 
 @onready var fin_count_slider: HSlider = $CanvasLayer/Panel/Margin/VBox/FinCountRow/HSlider
 @onready var fin_count_value: Label = $CanvasLayer/Panel/Margin/VBox/FinCountRow/ValueLabel
 @onready var material_option: OptionButton = $CanvasLayer/Panel/Margin/VBox/MaterialRow/OptionButton
 @onready var thickness_slider: HSlider = $CanvasLayer/Panel/Margin/VBox/ThicknessRow/HSlider
 @onready var thickness_value: Label = $CanvasLayer/Panel/Margin/VBox/ThicknessRow/ValueLabel
+@onready var bad_preset_button: Button = $CanvasLayer/Panel/Margin/VBox/PresetRow/BadPresetButton
+@onready var good_preset_button: Button = $CanvasLayer/Panel/Margin/VBox/PresetRow/GoodPresetButton
 @onready var continue_button: Button = $CanvasLayer/Panel/Margin/VBox/ContinueButton
 @onready var root_chord_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/RootChord
 @onready var tip_chord_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/TipChord
@@ -32,26 +41,131 @@ const DEFAULT_POINTS: Array = [
 @onready var area_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/Area
 
 var points: Array[Vector3] = []
+var shape_points_normalized: Array[Vector2] = []
 var handle_nodes: Array[MeshInstance3D] = []
 var selected_index: int = -1
 var is_dragging: bool = false
 var fin_data: FinData = FinData.new()
+var shape_panel: PanelContainer
+var shape_canvas: FinShapeCanvas
+var _camera_focus: Vector3 = Vector3(0.55, 1.35, 0.0)
+var _camera_distance: float = 7.1
+var _camera_yaw: float = 0.52
+var _camera_pitch: float = 0.24
 
 func _ready() -> void:
 	_reset_points()
+	_configure_preview_view()
 
 	fin_count_slider.value_changed.connect(_on_fin_count_changed)
 	thickness_slider.value_changed.connect(_on_thickness_changed)
 	material_option.item_selected.connect(_on_material_changed)
+	bad_preset_button.pressed.connect(func() -> void: _apply_demo_preset("bad"))
+	good_preset_button.pressed.connect(func() -> void: _apply_demo_preset("good"))
 	continue_button.pressed.connect(_on_continue)
 
 	_populate_materials()
+	_build_shape_step_ui()
+	_show_shape_step()
 	_rebuild_all()
+
+func set_editor_active(active: bool) -> void:
+	visible = active
+	editor_canvas.visible = active
+	set_process_input(active)
+	if active:
+		camera.current = true
 
 func _reset_points() -> void:
 	points.clear()
 	for p in DEFAULT_POINTS:
 		points.append(p)
+	shape_points_normalized = [
+		Vector2(0.00, 0.00), Vector2(0.50, 0.00), Vector2(1.00, 0.00),
+		Vector2(0.00, 0.50), Vector2(0.55, 0.45), Vector2(1.00, 0.55),
+		Vector2(0.00, 1.00), Vector2(0.45, 1.00), Vector2(0.82, 1.00),
+	]
+
+func _configure_preview_view() -> void:
+	rocket_preview.position = Vector3(0.55, 0.0, 0.0)
+	rocket_preview.scale = Vector3(1.35, 1.35, 1.35)
+	preview_body.position = Vector3(0.0, 1.25, 0.0)
+	_camera_focus = Vector3(0.55, 1.35, 0.0)
+	_camera_distance = 7.1
+	_camera_yaw = 0.52
+	_camera_pitch = 0.24
+	camera.fov = 62.0
+	camera.current = true
+	_update_preview_camera()
+	fin_root.visible = false
+
+func _build_shape_step_ui() -> void:
+	shape_panel = PanelContainer.new()
+	shape_panel.offset_left = 16.0
+	shape_panel.offset_top = 16.0
+	shape_panel.offset_right = 430.0
+	shape_panel.offset_bottom = 520.0
+	shape_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	editor_canvas.add_child(shape_panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	shape_panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "Fin Shape"
+	title.add_theme_font_size_override("font_size", 18)
+	vbox.add_child(title)
+
+	var instructions := Label.new()
+	instructions.text = "Drag the 9 points to shape the fin surface."
+	instructions.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(instructions)
+
+	shape_canvas = FinShapeCanvasScene.new()
+	shape_canvas.shape_changed.connect(_on_shape_points_changed)
+	vbox.add_child(shape_canvas)
+
+	var button_row := HBoxContainer.new()
+	button_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(button_row)
+
+	var reset_shape_button := Button.new()
+	reset_shape_button.text = "Reset Shape"
+	reset_shape_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	reset_shape_button.pressed.connect(func() -> void: shape_canvas.reset_points())
+	button_row.add_child(reset_shape_button)
+
+	var next_button := Button.new()
+	next_button.text = "Next: Fin Settings"
+	next_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	next_button.pressed.connect(_show_settings_step)
+	button_row.add_child(next_button)
+
+func _show_shape_step() -> void:
+	shape_panel.visible = true
+	$CanvasLayer/Panel.visible = false
+
+func _show_settings_step() -> void:
+	shape_panel.visible = false
+	$CanvasLayer/Panel.visible = true
+
+func _update_preview_camera() -> void:
+	var horizontal_distance := cos(_camera_pitch) * _camera_distance
+	var offset := Vector3(
+		sin(_camera_yaw) * horizontal_distance,
+		sin(_camera_pitch) * _camera_distance,
+		cos(_camera_yaw) * horizontal_distance
+	)
+	camera.global_position = _camera_focus + offset
+	camera.look_at(_camera_focus, Vector3.UP)
 
 func _populate_materials() -> void:
 	material_option.clear()
@@ -80,6 +194,7 @@ func _rebuild_all() -> void:
 	_regenerate_fin_mesh()
 	_update_rocket_preview()
 	_update_info_labels()
+	fin_data_changed.emit(fin_data)
 
 func _update_handle_positions() -> void:
 	_ensure_handles()
@@ -90,8 +205,12 @@ func _update_handle_positions() -> void:
 		handle_nodes[i].visible = false
 
 func _regenerate_fin_mesh() -> void:
-	fin_data.control_points = points.duplicate()
+	fin_data.set_shape_points_from_normalized(shape_points_normalized)
+	points.clear()
+	for p in fin_data.control_points:
+		points.append(p)
 	fin_data.thickness = thickness_slider.value
+	fin_data.fin_count = int(fin_count_slider.value)
 	fin_data.material_name = MaterialDatabase.material_names()[material_option.selected]
 
 	var mesh := fin_data.compute_mesh(SUBDIVISIONS)
@@ -108,14 +227,13 @@ func _regenerate_fin_mesh() -> void:
 	fin_mesh_instance.material_override = mat
 
 func _compute_fin_span() -> float:
-	var root_to_tip_le := points[2] - points[0]
-	return root_to_tip_le.length()
+	return fin_data.fin_span
 
 func _compute_fin_root_chord() -> float:
-	return (points[1] - points[0]).length()
+	return fin_data.fin_root_chord
 
 func _compute_fin_tip_chord() -> float:
-	return (points[3] - points[2]).length()
+	return fin_data.fin_tip_chord
 
 func _update_info_labels() -> void:
 	var rc := _compute_fin_root_chord()
@@ -157,6 +275,7 @@ func _update_rocket_preview() -> void:
 		fin_inst.material_override = fin_mat
 
 		fin_inst.position = radial * body_radius
+		fin_inst.position.y = 0.45
 
 		var basis := Basis()
 		basis.x = Vector3.DOWN
@@ -167,20 +286,43 @@ func _update_rocket_preview() -> void:
 
 func _on_fin_count_changed(_val: float) -> void:
 	fin_count_value.text = "%d" % int(fin_count_slider.value)
-	_update_rocket_preview()
+	_rebuild_all()
 
 func _on_thickness_changed(_val: float) -> void:
 	thickness_value.text = "%.3f m" % thickness_slider.value
-	_regenerate_fin_mesh()
-	_update_rocket_preview()
+	_rebuild_all()
 
 func _on_material_changed(_idx: int) -> void:
-	_regenerate_fin_mesh()
-	_update_rocket_preview()
+	_rebuild_all()
+
+func _apply_demo_preset(preset_name: String) -> void:
+	match preset_name:
+		"bad":
+			shape_canvas.set_points([
+				Vector2(0.00, 0.00), Vector2(0.28, 0.00), Vector2(0.48, 0.00),
+				Vector2(0.00, 0.40), Vector2(0.30, 0.38), Vector2(0.42, 0.42),
+				Vector2(0.00, 0.78), Vector2(0.20, 0.80), Vector2(0.28, 0.80),
+			])
+			fin_count_slider.value = 1.0
+			thickness_slider.value = 0.015
+			_select_material("plastic")
+		"good":
+			shape_canvas.set_points([
+				Vector2(0.00, 0.00), Vector2(0.54, 0.00), Vector2(1.00, 0.00),
+				Vector2(0.00, 0.52), Vector2(0.58, 0.48), Vector2(0.96, 0.55),
+				Vector2(0.00, 1.00), Vector2(0.50, 1.00), Vector2(0.82, 1.00),
+			])
+			fin_count_slider.value = 4.0
+			thickness_slider.value = 0.055
+			_select_material("carbon_fiber")
+	fin_count_value.text = "%d" % int(fin_count_slider.value)
+	thickness_value.text = "%.3f m" % thickness_slider.value
+	_rebuild_all()
+	demo_preset_selected.emit(preset_name)
 
 func _on_continue() -> void:
 	fin_data = FinData.new()
-	fin_data.control_points = points.duplicate()
+	fin_data.set_shape_points_from_normalized(shape_points_normalized)
 	fin_data.thickness = thickness_slider.value
 	fin_data.fin_count = int(fin_count_slider.value)
 	fin_data.material_name = MaterialDatabase.material_names()[material_option.selected]
@@ -191,20 +333,47 @@ func _on_continue() -> void:
 
 	fins_confirmed.emit(fin_data)
 
+func _on_shape_points_changed(new_points: Array[Vector2]) -> void:
+	shape_points_normalized.clear()
+	for p in new_points:
+		shape_points_normalized.append(p)
+	_rebuild_all()
+
+func _select_material(material_name: String) -> void:
+	var names := MaterialDatabase.material_names()
+	for i in range(names.size()):
+		if names[i] == material_name:
+			material_option.select(i)
+			return
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
+		if event.pressed:
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				_camera_distance = maxf(MIN_CAMERA_DISTANCE, _camera_distance - 0.7)
+				_update_preview_camera()
+				return
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				_camera_distance = minf(MAX_CAMERA_DISTANCE, _camera_distance + 0.7)
+				_update_preview_camera()
+				return
+
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
+			if fin_root.visible and event.pressed:
 				_try_pick_handle(event.position)
 			else:
 				is_dragging = false
 				selected_index = -1
 
-	if event is InputEventMouseMotion and is_dragging and selected_index >= 0:
-		_drag_handle(event.position)
+	if event is InputEventMouseMotion:
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			_camera_yaw -= event.relative.x * ORBIT_SENSITIVITY
+			_camera_pitch = clampf(_camera_pitch - event.relative.y * ORBIT_SENSITIVITY, -0.2, 1.2)
+			_update_preview_camera()
+		elif is_dragging and selected_index >= 0:
+			_drag_handle(event.position)
 
 func _try_pick_handle(screen_pos: Vector2) -> void:
-	var space := get_world_3d().direct_space_state
 	var params := PhysicsRayQueryParameters3D.new()
 	params.from = camera.project_ray_origin(screen_pos)
 	params.to = params.from + camera.project_ray_normal(screen_pos) * 100.0

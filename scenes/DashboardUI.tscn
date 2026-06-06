@@ -149,6 +149,20 @@ layout_mode = 2
 text = "0 deg"
 horizontal_alignment = 2
 
+[node name="BodyMaterialRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BodyMaterialLabel" type="Label" parent="Panel/Margin/VBox/BodyMaterialRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "Body"
+
+[node name="BodyMaterialOption" type="OptionButton" parent="Panel/Margin/VBox/BodyMaterialRow"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="FinCountRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
