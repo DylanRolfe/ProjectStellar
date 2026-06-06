@@ -46,6 +46,10 @@ func get_current_fin_data() -> FinData:
 
 func _build_shape_step_ui() -> void:
 	shape_panel = PanelContainer.new()
+	var shape_style := StyleBoxFlat.new()
+	shape_style.bg_color = Color(0.12, 0.12, 0.16, 0.88)
+	shape_style.set_corner_radius_all(10)
+	shape_panel.add_theme_stylebox_override("panel", shape_style)
 	shape_panel.offset_left = 16.0
 	shape_panel.offset_top = 16.0
 	shape_panel.offset_right = 430.0

@@ -1,6 +1,13 @@
-[gd_scene format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/fin_editor.gd" id="1_editor"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.12, 0.12, 0.16, 0.88)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [node name="FinEditor" type="Node3D"]
 script = ExtResource("1_editor")
@@ -15,6 +22,7 @@ offset_top = 16.0
 offset_right = 380.0
 offset_bottom = 524.0
 mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="Margin" type="MarginContainer" parent="CanvasLayer/Panel"]
 layout_mode = 2
