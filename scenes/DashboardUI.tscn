@@ -31,7 +31,8 @@ theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="Panel/Margin/VBox"]
 layout_mode = 2
-text = "Rocket Controls"
+theme_type_variation = &"Header"
+text = "ROCKET CONTROLS"
 
 [node name="PayloadMassRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
