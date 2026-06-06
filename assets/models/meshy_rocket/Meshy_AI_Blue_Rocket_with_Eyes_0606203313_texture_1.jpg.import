@@ -2,24 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cppisb5cnd8d1"
-path.s3tc="res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_1.jpg-2e16ed2188166bbaa4eec3c94f944c00.s3tc.ctex"
+uid="uid://b5auhofcf0glg"
+path="res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_1.jpg-2e16ed2188166bbaa4eec3c94f944c00.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
-}
-generator_parameters={
-"md5": "58e7406bd57359b532c899834a797d7d"
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://assets/models/meshy_rocket/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_1.jpg"
-dest_files=["res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_1.jpg-2e16ed2188166bbaa4eec3c94f944c00.s3tc.ctex"]
+dest_files=["res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_1.jpg-2e16ed2188166bbaa4eec3c94f944c00.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -27,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -41,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=1
