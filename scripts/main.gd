@@ -89,8 +89,8 @@ func _set_app_state(new_state: int) -> void:
 		AppState.EDITING_FINS:
 			fin_editor.set_editor_active(true)
 			ui_layer.visible = false
-			rocket.visible = true
-			sim_camera.current = true
+			rocket.visible = false
+			sim_camera.current = false
 		AppState.READY_TO_LAUNCH:
 			fin_editor.set_editor_active(false)
 			ui_layer.visible = true
