@@ -5,10 +5,10 @@ signal flight_finished(reason: String)
 
 const FUEL_BURN_RATE: float = 8.0
 const AIR_DENSITY: float = 1.225
-const DRAG_COEFFICIENT: float = 1.2
-const WIND_FORCE_MULTIPLIER: float = 5.0
+const DRAG_COEFFICIENT: float = 0.00000001
+const WIND_FORCE_MULTIPLIER: float = 1.0
 const DESTABILIZING_TORQUE: float = 0.35
-const STABILIZING_TORQUE: float = 0.55
+const STABILIZING_TORQUE: float = 50
 const MIN_AIRFLOW_SPEED: float = 0.1
 const MIN_TORQUE_AXIS: float = 0.001
 const FIN_BASE_HEIGHT: float = 0.45
@@ -116,7 +116,7 @@ func _physics_process(delta: float) -> void:
 		var area := AeroPhysics.frontal_area(config.rocket_radius)
 		var drag_coefficient := maxf(0.4, DRAG_COEFFICIENT + _body_drag_modifier())
 		var drag_magnitude := AeroPhysics.drag_force(relative_speed, AIR_DENSITY, drag_coefficient, area)
-		apply_central_force(-relative_velocity.normalized() * drag_magnitude * WIND_FORCE_MULTIPLIER)
+		apply_central_force(-relative_velocity.normalized() * drag_magnitude)
 		_apply_airflow_torque(relative_velocity, relative_speed)
 
 	if _fuel > 0.0:
@@ -130,6 +130,13 @@ func _physics_process(delta: float) -> void:
 			engine_flame.emitting = false
 	elif engine_flame.emitting:
 		engine_flame.emitting = false
+		
+	if _fuel <= 0.0:
+		var nose_dir := global_transform.basis.y.normalized()
+		var flip_axis := nose_dir.cross(Vector3.DOWN)
+		if flip_axis.length() > MIN_TORQUE_AXIS:
+			var flip_torque := nose_dir.angle_to(Vector3.DOWN) * mass * 6.0
+			apply_torque(flip_axis.normalized() * flip_torque)
 
 	max_altitude = maxf(max_altitude, altitude)
 	max_speed = maxf(max_speed, linear_velocity.length())
@@ -203,23 +210,17 @@ func _apply_airflow_torque(relative_velocity: Vector3, relative_speed: float) ->
 		return
 	axis = axis.normalized()
 
-	var sideways_airflow := clampf(1.0 - absf(nose_dir.dot(flight_dir)), 0.0, 1.0)
 	var effective_area := config.fin_surface_area if config.fin_surface_area > 0.0 else config.fin_size
 	var fin_power := float(config.fin_count) * effective_area
 	var fin_mat_data: Dictionary = MaterialDatabase.get_material(config.fin_material_name)
 	var fin_strength := float(fin_mat_data.get("strength", 0.6))
 	var stability_bonus := float(fin_mat_data.get("stability_bonus", 0.0))
 	fin_power *= maxf(0.25, fin_strength + stability_bonus)
-	var fin_deficit := clampf(1.0 - fin_power / 1.6, 0.0, 1.0)
-	var wind_ratio := clampf(config.wind_speed / 40.0, 0.0, 1.0)
 
-	var destabilizing := misalignment * relative_speed * sideways_airflow * fin_deficit * DESTABILIZING_TORQUE
-	if destabilizing > 0.0:
-		apply_torque(-axis * destabilizing)
+	var dynamic_pressure := 0.5 * AIR_DENSITY * relative_speed * relative_speed
+	var restoring_torque := misalignment * relative_speed * fin_power * STABILIZING_TORQUE
 
-	var stabilizing := misalignment * relative_speed * sideways_airflow * fin_power * STABILIZING_TORQUE
-	if stabilizing > 0.0:
-		apply_torque(axis * stabilizing)
+	apply_torque(-axis * restoring_torque)
 
 func _build_visual_fins() -> void:
 	if not is_node_ready():

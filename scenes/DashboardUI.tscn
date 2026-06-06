@@ -103,9 +103,8 @@ text = "Fuel"
 custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-max_value = 10000.0
-step = 100.0
-value = 40.0
+max_value = 200.0
+step = 10.0
 
 [node name="FuelValueLabel" type="Label" parent="Panel/Margin/VBox/FuelRow" unique_id=429230685]
 custom_minimum_size = Vector2(70, 0)
