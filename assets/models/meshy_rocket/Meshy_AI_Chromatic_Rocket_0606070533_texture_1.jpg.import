@@ -3,9 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxddyrbwiif0o"
-path.etc2="res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture_1.jpg-da00d0b21d1ae8569a4917174a309d9b.etc2.ctex"
+path.s3tc="res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture_1.jpg-da00d0b21d1ae8569a4917174a309d9b.s3tc.ctex"
 metadata={
-"imported_formats": ["etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/meshy_rocket/Meshy_AI_Chromatic_Rocket_0606070533_texture_1.jpg"
-dest_files=["res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture_1.jpg-da00d0b21d1ae8569a4917174a309d9b.etc2.ctex"]
+dest_files=["res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture_1.jpg-da00d0b21d1ae8569a4917174a309d9b.s3tc.ctex"]
 
 [params]
 

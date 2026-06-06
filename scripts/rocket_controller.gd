@@ -6,9 +6,9 @@ signal flight_finished(reason: String)
 const FUEL_BURN_RATE: float = 8.0
 const AIR_DENSITY: float = 1.225
 const DRAG_COEFFICIENT: float = 1.2
-const WIND_FORCE_MULTIPLIER: float = 3.0
-const DESTABILIZING_TORQUE: float = 0.9
-const STABILIZING_TORQUE: float = 0.45
+const WIND_FORCE_MULTIPLIER: float = 1.0
+const DESTABILIZING_TORQUE: float = 0.35
+const STABILIZING_TORQUE: float = 0.55
 const MIN_AIRFLOW_SPEED: float = 0.1
 const MIN_TORQUE_AXIS: float = 0.001
 const FIN_BASE_HEIGHT: float = 0.45
@@ -44,6 +44,7 @@ var _flight_time: float = 0.0
 var _tilt_sum: float = 0.0
 var _tilt_samples: int = 0
 var _tumbled: bool = false
+var _deg: bool = false
 var _last_print_time: float = 0.0
 func _ready() -> void:
 	setup(config)
@@ -89,11 +90,12 @@ func setup(new_config: RocketConfig) -> void:
 	_tilt_sum = 0.0
 	_tilt_samples = 0
 	_tumbled = false
+	_deg = false
 	_last_print_time = 0.0
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 	rotation = Vector3.ZERO
-	angular_damp = 1.2
+	angular_damp = 3.0
 	freeze = true
 	sleeping = false
 	_apply_visual_model_mode()
@@ -128,10 +130,12 @@ func _physics_process(delta: float) -> void:
 		_apply_airflow_torque(relative_velocity, relative_speed)
 
 	if _fuel > 0.0:
-		var burn := minf(_fuel, FUEL_BURN_RATE * delta)
-		_fuel -= burn
-		mass = config.dry_mass + _fuel * RocketConfig.FUEL_MASS_FACTOR
-		apply_central_force(global_transform.basis.y.normalized() * config.engine_thrust)
+		var tilt := rad_to_deg(global_transform.basis.y.angle_to(Vector3.UP))
+		if tilt < 60.0:
+			var burn := minf(_fuel, FUEL_BURN_RATE * delta)
+			_fuel -= burn
+			mass = config.dry_mass + _fuel * RocketConfig.FUEL_MASS_FACTOR
+			apply_central_force(global_transform.basis.y.normalized() * config.engine_thrust)
 
 	max_altitude = maxf(max_altitude, altitude)
 	max_speed = maxf(max_speed, linear_velocity.length())
@@ -159,10 +163,11 @@ func _check_flight_end(altitude: float) -> void:
 	if _flight_time < MIN_FLIGHT_TIME:
 		return
 	if altitude > 2.0 and current_tilt >= TUMBLE_TILT_DEGREES:
-		_tumbled = true
-		_finish_flight("Lost control: rocket tumbled past %.0f degrees" % TUMBLE_TILT_DEGREES)
-		return
+		_deg = true
 	if max_altitude > 2.0 and global_position.y <= GROUND_IMPACT_HEIGHT and linear_velocity.y <= 0.0:
+		if _deg == true:
+			_finish_flight("Lost control: rocket tumbled past %.0f degrees" % TUMBLE_TILT_DEGREES)
+			return
 		var reason := "Flight failed: rocket tumbled before impact" if _tumbled else "Flight complete: returned to the ground"
 		_finish_flight(reason)
 
@@ -204,11 +209,11 @@ func _apply_airflow_torque(relative_velocity: Vector3, relative_speed: float) ->
 	var fin_deficit := clampf(1.0 - fin_power / 1.6, 0.0, 1.0)
 	var wind_ratio := clampf(config.wind_speed / 40.0, 0.0, 1.0)
 
-	var destabilizing := misalignment * relative_speed * sideways_airflow * fin_deficit * wind_ratio * DESTABILIZING_TORQUE
+	var destabilizing := misalignment * relative_speed * sideways_airflow * fin_deficit * DESTABILIZING_TORQUE
 	if destabilizing > 0.0:
 		apply_torque(-axis * destabilizing)
 
-	var stabilizing := misalignment * relative_speed * fin_power * STABILIZING_TORQUE
+	var stabilizing := misalignment * relative_speed * sideways_airflow * fin_power * STABILIZING_TORQUE
 	if stabilizing > 0.0:
 		apply_torque(axis * stabilizing)
 
