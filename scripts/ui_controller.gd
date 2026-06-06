@@ -103,6 +103,18 @@ func apply_demo_preset(preset_name: String) -> void:
 	status_label.text = "Ready"
 	config_changed.emit(build_config())
 
+func set_hud_mode(enabled: bool) -> void:
+	payload_mass_slider.editable = not enabled
+	thrust_slider.editable = not enabled
+	fuel_slider.editable = not enabled
+	wind_speed_slider.editable = not enabled
+	wind_direction_slider.editable = not enabled
+	body_material_option.disabled = enabled
+	launch_button.disabled = enabled
+	status_label.text = "In flight" if enabled else "Ready"
+	if enabled:
+		results_panel.visible = false
+
 func _on_launch_pressed() -> void:
 	status_label.text = "In flight"
 	results_panel.visible = false

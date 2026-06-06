@@ -3,9 +3,9 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bes20upme5di1"
-path.etc2="res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_0.jpg-5f02697ade2d59ba6657a04c7b796b6a.etc2.ctex"
+path.s3tc="res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_0.jpg-5f02697ade2d59ba6657a04c7b796b6a.s3tc.ctex"
 metadata={
-"imported_formats": ["etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/meshy_rocket/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_0.jpg"
-dest_files=["res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_0.jpg-5f02697ade2d59ba6657a04c7b796b6a.etc2.ctex"]
+dest_files=["res://.godot/imported/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture_0.jpg-5f02697ade2d59ba6657a04c7b796b6a.s3tc.ctex"]
 
 [params]
 

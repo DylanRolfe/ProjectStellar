@@ -103,16 +103,19 @@ func _set_app_state(new_state: int) -> void:
 			ui_layer.visible = true
 			rocket.visible = true
 			sim_camera.current = true
+			ui.set_hud_mode(false)
 		AppState.IN_FLIGHT:
 			fin_editor.set_editor_active(false)
 			ui_layer.visible = true
 			rocket.visible = true
 			sim_camera.current = true
+			ui.set_hud_mode(true)
 		AppState.RESULTS:
 			fin_editor.set_editor_active(false)
 			ui_layer.visible = true
 			rocket.visible = true
 			sim_camera.current = true
+			ui.set_hud_mode(true)
 
 func _build_config_from_fin_data(fin_data: FinData) -> RocketConfig:
 	var config := RocketConfig.new()
