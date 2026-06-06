@@ -11,8 +11,13 @@ config_version=5
 [application]
 
 config/name="Project Stellar"
+run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+MaterialDatabase="*res://scripts/material_database.gd"
 
 [physics]
 

@@ -1,0 +1,3 @@
+class_name ResultsCalculator
+extends RefCounted
+

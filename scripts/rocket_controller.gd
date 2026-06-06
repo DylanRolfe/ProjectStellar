@@ -1,0 +1,3 @@
+class_name RocketController
+extends RigidBody3D
+
