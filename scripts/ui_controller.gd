@@ -154,3 +154,9 @@ func _update_value_labels() -> void:
 func _selected_body_material_name() -> String:
 	var metadata: Variant = body_material_option.get_item_metadata(body_material_option.selected)
 	return str(metadata) if metadata != null else "aluminum"
+
+func _select_body_material(material_name: String) -> void:
+	for i in range(body_material_option.get_item_count()):
+		if str(body_material_option.get_item_metadata(i)) == material_name:
+			body_material_option.select(i)
+			return
