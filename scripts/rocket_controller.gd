@@ -17,11 +17,6 @@ const MIN_FLIGHT_TIME: float = 1.0
 const TUMBLE_TILT_DEGREES: float = 82.0
 const GROUND_IMPACT_HEIGHT: float = 0.25
 
-@export var use_meshy_visual_model: bool = false
-@export var body_part_path: NodePath
-@export var nose_part_path: NodePath
-@export var engine_part_path: NodePath
-
 var config: RocketConfig = RocketConfig.new()
 var max_altitude: float = 0.0
 var max_speed: float = 0.0
@@ -29,13 +24,6 @@ var current_tilt: float = 0.0
 var max_tilt: float = 0.0
 
 @onready var fin_holder: Node3D = $FinHolder
-@onready var body_mesh: MeshInstance3D = $BodyMesh
-@onready var nose_mesh: MeshInstance3D = $NoseMesh
-@onready var nozzle_mesh: MeshInstance3D = $NozzleMesh
-@onready var visual_model_holder: Node3D = $VisualModelHolder
-@onready var body_part: Node = get_node_or_null(body_part_path)
-@onready var nose_part: Node = get_node_or_null(nose_part_path)
-@onready var engine_part: Node = get_node_or_null(engine_part_path)
 
 var _fuel: float = 0.0
 var _launched: bool = false
@@ -46,6 +34,7 @@ var _tilt_samples: int = 0
 var _tumbled: bool = false
 var _deg: bool = false
 var _last_print_time: float = 0.0
+
 func _ready() -> void:
 	setup(config)
 	set_physics_process(true)
@@ -56,8 +45,6 @@ func preview_config(new_config: RocketConfig) -> void:
 	config = new_config
 	config.recalculate_masses()
 	mass = config.total_launch_mass
-	_apply_visual_model_mode()
-	_apply_materials()
 	_build_visual_fins()
 
 func preview_fins(fin_data: FinData) -> void:
@@ -98,8 +85,6 @@ func setup(new_config: RocketConfig) -> void:
 	angular_damp = 3.0
 	freeze = true
 	sleeping = false
-	_apply_visual_model_mode()
-	_apply_materials()
 	_build_visual_fins()
 
 func launch() -> void:
@@ -270,20 +255,3 @@ func _skin(node: Node, mat: StandardMaterial3D) -> void:
 				mi.set_surface_override_material(s, mat)
 	for child in node.get_children():
 		_skin(child, mat)
-
-func _apply_materials() -> void:
-	var body_mat: StandardMaterial3D = MaterialDatabase.get_surface_material(config.body_material_name)
-	if body_part:
-		_skin(body_part, body_mat)
-	if nose_part:
-		_skin(nose_part, body_mat)
-	if engine_part:
-		_skin(engine_part, body_mat)
-
-func _apply_visual_model_mode() -> void:
-	if not is_node_ready():
-		return
-	body_mesh.visible = not use_meshy_visual_model
-	nose_mesh.visible = not use_meshy_visual_model
-	nozzle_mesh.visible = not use_meshy_visual_model
-	visual_model_holder.visible = use_meshy_visual_model
