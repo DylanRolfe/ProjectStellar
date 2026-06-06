@@ -1,0 +1,97 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/title_screen.gd" id="1_title"]
+[ext_resource type="FontFile" path="res://assets/fonts/Syncopate-Bold.ttf" id="2_head"]
+
+[node name="TitleScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_title")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.00784, 0.02353, 0.0902, 1)
+
+[node name="ScannerLine" type="ColorRect" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+offset_bottom = 2.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.21961, 0.74118, 0.97255, 0.22)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Eyebrow" type="Label" parent="CenterContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.21961, 0.74118, 0.97255, 0.85)
+theme_override_font_sizes/font_size = 14
+text = "//  MODEL ROCKETRY FLIGHT SIMULATOR"
+horizontal_alignment = 1
+
+[node name="Gap1" type="Control" parent="CenterContainer/VBox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+
+[node name="TitleProject" type="Label" parent="CenterContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.95, 0.98, 1)
+theme_override_colors/font_shadow_color = Color(0.21961, 0.74118, 0.97255, 0.45)
+theme_override_constants/shadow_outline_size = 10
+theme_override_fonts/font = ExtResource("2_head")
+theme_override_font_sizes/font_size = 76
+text = "PROJECT"
+horizontal_alignment = 1
+
+[node name="TitleStellar" type="Label" parent="CenterContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.21961, 0.74118, 0.97255, 1)
+theme_override_colors/font_shadow_color = Color(0.21961, 0.74118, 0.97255, 0.55)
+theme_override_constants/shadow_outline_size = 14
+theme_override_fonts/font = ExtResource("2_head")
+theme_override_font_sizes/font_size = 76
+text = "STELLAR"
+horizontal_alignment = 1
+
+[node name="Gap2" type="Control" parent="CenterContainer/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="ClickPrompt" type="Label" parent="CenterContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.21961, 0.74118, 0.97255, 1)
+theme_override_font_sizes/font_size = 18
+text = "CLICK ANYWHERE TO BEGIN"
+horizontal_alignment = 1
+
+[node name="FadeOverlay" type="ColorRect" parent="."]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.00784, 0.02353, 0.0902, 1)
