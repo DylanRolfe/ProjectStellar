@@ -11,7 +11,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if Input.is_key_pressed(KEY_SPACE):
-		rocket.launch()
+		_on_launch_requested(ui.build_config())
 
 func _on_launch_requested(config: RocketConfig) -> void:
 	rocket.setup(config)

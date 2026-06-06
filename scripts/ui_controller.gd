@@ -9,9 +9,13 @@ signal reset_requested
 @onready var mass_slider: HSlider = $Panel/Margin/VBox/MassRow/MassSlider
 @onready var thrust_slider: HSlider = $Panel/Margin/VBox/ThrustRow/ThrustSlider
 @onready var fuel_slider: HSlider = $Panel/Margin/VBox/FuelRow/FuelSlider
+@onready var wind_speed_slider: HSlider = $Panel/Margin/VBox/WindSpeedRow/WindSpeedSlider
+@onready var wind_direction_slider: HSlider = $Panel/Margin/VBox/WindDirectionRow/WindDirectionSlider
 @onready var mass_value_label: Label = $Panel/Margin/VBox/MassRow/MassValueLabel
 @onready var thrust_value_label: Label = $Panel/Margin/VBox/ThrustRow/ThrustValueLabel
 @onready var fuel_value_label: Label = $Panel/Margin/VBox/FuelRow/FuelValueLabel
+@onready var wind_speed_value_label: Label = $Panel/Margin/VBox/WindSpeedRow/WindSpeedValueLabel
+@onready var wind_direction_value_label: Label = $Panel/Margin/VBox/WindDirectionRow/WindDirectionValueLabel
 @onready var status_label: Label = $Panel/Margin/VBox/StatusLabel
 
 func _ready() -> void:
@@ -20,6 +24,8 @@ func _ready() -> void:
 	mass_slider.value_changed.connect(_on_slider_changed)
 	thrust_slider.value_changed.connect(_on_slider_changed)
 	fuel_slider.value_changed.connect(_on_slider_changed)
+	wind_speed_slider.value_changed.connect(_on_slider_changed)
+	wind_direction_slider.value_changed.connect(_on_slider_changed)
 	_update_value_labels()
 
 func build_config() -> RocketConfig:
@@ -27,6 +33,8 @@ func build_config() -> RocketConfig:
 	config.rocket_mass = mass_slider.value
 	config.engine_thrust = thrust_slider.value
 	config.fuel_amount = fuel_slider.value
+	config.wind_speed = wind_speed_slider.value
+	config.wind_direction = wind_direction_slider.value
 	return config
 
 func _on_launch_pressed() -> void:
@@ -41,3 +49,5 @@ func _update_value_labels() -> void:
 	mass_value_label.text = "%.0f kg" % mass_slider.value
 	thrust_value_label.text = "%.0f N" % thrust_slider.value
 	fuel_value_label.text = "%.0f" % fuel_slider.value
+	wind_speed_value_label.text = "%.1f m/s" % wind_speed_slider.value
+	wind_direction_value_label.text = "%.0f deg" % wind_direction_slider.value

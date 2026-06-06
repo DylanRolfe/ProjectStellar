@@ -15,7 +15,7 @@ script = ExtResource("1_ui")
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 376.0
-offset_bottom = 240.0
+offset_bottom = 330.0
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
@@ -102,6 +102,50 @@ value = 40.0
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "40"
+horizontal_alignment = 2
+
+[node name="WindSpeedRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WindSpeedLabel" type="Label" parent="Panel/Margin/VBox/WindSpeedRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "Wind"
+
+[node name="WindSpeedSlider" type="HSlider" parent="Panel/Margin/VBox/WindSpeedRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 40.0
+step = 0.5
+
+[node name="WindSpeedValueLabel" type="Label" parent="Panel/Margin/VBox/WindSpeedRow"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "0.0 m/s"
+horizontal_alignment = 2
+
+[node name="WindDirectionRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WindDirectionLabel" type="Label" parent="Panel/Margin/VBox/WindDirectionRow"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "Dir"
+
+[node name="WindDirectionSlider" type="HSlider" parent="Panel/Margin/VBox/WindDirectionRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 360.0
+step = 1.0
+
+[node name="WindDirectionValueLabel" type="Label" parent="Panel/Margin/VBox/WindDirectionRow"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "0 deg"
 horizontal_alignment = 2
 
 [node name="ButtonRow" type="HBoxContainer" parent="Panel/Margin/VBox"]

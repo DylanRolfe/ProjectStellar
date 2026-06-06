@@ -2,6 +2,9 @@ class_name RocketController
 extends RigidBody3D
 
 const FUEL_BURN_RATE: float = 8.0
+const AIR_DENSITY: float = 1.225
+const DRAG_COEFFICIENT: float = 1.2
+const WIND_FORCE_MULTIPLIER: float = 3.0
 
 var config: RocketConfig = RocketConfig.new()
 var max_altitude: float = 0.0
@@ -34,7 +37,7 @@ func launch() -> void:
 	_launched = true
 	freeze = false
 	sleeping = false
-	print("Launch started: thrust %.1f N, mass %.1f kg, fuel %.1f" % [config.engine_thrust, mass, _fuel])
+	print("Launch started: thrust %.1f N, mass %.1f kg, fuel %.1f, wind %.1f m/s @ %.0f deg" % [config.engine_thrust, mass, _fuel, config.wind_speed, config.wind_direction])
 
 func _physics_process(delta: float) -> void:
 	if not _launched:
@@ -43,6 +46,14 @@ func _physics_process(delta: float) -> void:
 	var altitude := maxf(global_position.y, 0.0)
 	var gravity_force := Vector3.DOWN * mass * AeroPhysics.gravity_at(altitude)
 	apply_central_force(gravity_force)
+
+	var wind_velocity := WindModel.get_wind_vector(config.wind_speed, config.wind_direction)
+	var relative_velocity := linear_velocity - wind_velocity
+	var relative_speed := relative_velocity.length()
+	if relative_speed > 0.01:
+		var area := AeroPhysics.frontal_area(config.rocket_radius)
+		var drag_magnitude := AeroPhysics.drag_force(relative_speed, AIR_DENSITY, DRAG_COEFFICIENT, area)
+		apply_central_force(-relative_velocity.normalized() * drag_magnitude * WIND_FORCE_MULTIPLIER)
 
 	if _fuel > 0.0:
 		var burn := minf(_fuel, FUEL_BURN_RATE * delta)
@@ -55,4 +66,4 @@ func _physics_process(delta: float) -> void:
 	_last_print_time += delta
 	if _last_print_time >= 1.0:
 		_last_print_time = 0.0
-		print("Altitude %.1f m | Speed %.1f m/s | Fuel %.1f" % [altitude, linear_velocity.length(), _fuel])
+		print("Altitude %.1f m | Speed %.1f m/s | Fuel %.1f | Wind %.1f m/s @ %.0f deg" % [altitude, linear_velocity.length(), _fuel, config.wind_speed, config.wind_direction])
