@@ -33,12 +33,7 @@ var _tilt_sum: float = 0.0
 var _tilt_samples: int = 0
 var _tumbled: bool = false
 var _last_print_time: float = 0.0
-var _fin_material: StandardMaterial3D
-
 func _ready() -> void:
-	_fin_material = StandardMaterial3D.new()
-	_fin_material.albedo_color = Color(1.0, 0.72, 0.12, 1.0)
-	_fin_material.roughness = 0.45
 	setup(config)
 	set_physics_process(true)
 
@@ -157,7 +152,8 @@ func _apply_airflow_torque(relative_velocity: Vector3, relative_speed: float) ->
 	axis = axis.normalized()
 
 	var sideways_airflow := clampf(1.0 - absf(nose_dir.dot(flight_dir)), 0.0, 1.0)
-	var fin_power := float(config.fin_count) * config.fin_size
+	var effective_area := config.fin_surface_area if config.fin_surface_area > 0.0 else config.fin_size
+	var fin_power := float(config.fin_count) * effective_area
 	var fin_deficit := clampf(1.0 - fin_power / 1.6, 0.0, 1.0)
 	var wind_ratio := clampf(config.wind_speed / 40.0, 0.0, 1.0)
 
@@ -179,9 +175,17 @@ func _build_visual_fins() -> void:
 	if config.fin_count <= 0:
 		return
 
-	var fin_height := clampf(config.fin_size * 1.2, 0.15, 1.2)
-	var fin_length := clampf(config.fin_size * 0.9, 0.12, 0.9)
-	var fin_thickness := 0.06
+	var mesh := config.fin_mesh
+	if mesh == null:
+		return
+
+	var mat_data: Dictionary = MaterialDatabase.get_material(config.fin_material_name)
+	var fin_mat := StandardMaterial3D.new()
+	fin_mat.albedo_color = mat_data.get("color", Color(0.8, 0.82, 0.85))
+	fin_mat.metallic = 0.3
+	fin_mat.roughness = 0.5
+	fin_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+
 	for i in range(config.fin_count):
 		var angle := TAU * float(i) / float(config.fin_count)
 		var radial := Vector3(cos(angle), 0.0, sin(angle))
@@ -189,12 +193,15 @@ func _build_visual_fins() -> void:
 
 		var fin := MeshInstance3D.new()
 		fin.name = "Fin%d" % (i + 1)
-		var mesh := BoxMesh.new()
-		mesh.size = Vector3(fin_length, fin_height, fin_thickness)
 		fin.mesh = mesh
-		fin.material_override = _fin_material
+		fin.material_override = fin_mat
 		fin_holder.add_child(fin)
 
-		var center := radial * (FIN_BODY_RADIUS + fin_length * 0.5)
-		center.y = FIN_BASE_HEIGHT + fin_height * 0.5
-		fin.transform = Transform3D(Basis(radial, Vector3.UP, tangent), center)
+		fin.position = radial * FIN_BODY_RADIUS
+		fin.position.y = FIN_BASE_HEIGHT
+
+		var basis := Basis()
+		basis.x = Vector3.DOWN
+		basis.y = radial
+		basis.z = tangent
+		fin.basis = basis
