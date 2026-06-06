@@ -3,7 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://djjoth4aeka5o"
+<<<<<<< Updated upstream:assets/models/meshy_rocket/Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg.import
 path.s3tc="res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg-90d02b7f0cd89fa44395bb8a4ddc6cd7.s3tc.ctex"
+=======
+path.s3tc="res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg-4d10c92ebf742290adf567f84c6593cb.s3tc.ctex"
+>>>>>>> Stashed changes:Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg.import
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -14,8 +18,13 @@ generator_parameters={
 
 [deps]
 
+<<<<<<< Updated upstream:assets/models/meshy_rocket/Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg.import
 source_file="res://assets/models/meshy_rocket/Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg"
 dest_files=["res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg-90d02b7f0cd89fa44395bb8a4ddc6cd7.s3tc.ctex"]
+=======
+source_file="res://Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg"
+dest_files=["res://.godot/imported/Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg-4d10c92ebf742290adf567f84c6593cb.s3tc.ctex"]
+>>>>>>> Stashed changes:Meshy_AI_Chromatic_Rocket_0606070533_texture_2.jpg.import
 
 [params]
 
