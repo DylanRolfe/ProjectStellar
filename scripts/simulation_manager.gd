@@ -12,10 +12,17 @@ var _elapsed: float = 0.0
 const MAX_FLIGHT_TIME: float = 30.0
 
 func _ready() -> void:
-	_rocket = get_node(rocket_path) as RocketController
+	var rocket_node := get_node_or_null(rocket_path)
+	_rocket = rocket_node if rocket_node is RocketController else null
+	if _rocket == null:
+		push_error("SimulationManager: rocket node not found or not a RocketController at %s" % rocket_path)
+		return
 	_rocket.flight_finished.connect(_on_flight_finished)
 
 func start_launch(config: RocketConfig) -> void:
+	if _rocket == null:
+		push_error("SimulationManager: cannot start launch without a rocket")
+		return
 	_running = true
 	_elapsed = 0.0
 	_rocket.setup(config)
