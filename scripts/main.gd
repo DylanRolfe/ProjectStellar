@@ -24,6 +24,7 @@ func _ready() -> void:
 		fin_editor.fin_data_changed.connect(_on_fin_data_changed)
 	ui.launch_requested.connect(_on_launch_requested)
 	ui.reset_requested.connect(_on_reset_requested)
+	ui.back_to_start_requested.connect(_on_back_to_start)
 	ui.config_changed.connect(_on_config_changed)
 	simulation_manager.results_ready.connect(_on_results_ready)
 	simulation_manager.simulation_state_changed.connect(func(message: String) -> void: ui.set_status(message))
@@ -74,8 +75,20 @@ func _merge_launch_settings_into_rocket_config(slider_config: RocketConfig) -> v
 	rc.recalculate_masses()
 
 func _on_reset_requested() -> void:
-	get_tree().paused = false
-	get_tree().call_deferred("change_scene_to_file", MAIN_SCENE_PATH)
+	# Return to the ready-to-launch state on the pad WITHOUT discarding the
+	# current rocket/fin design, so small tweaks can be relaunched repeatedly.
+	_set_app_state(AppState.READY_TO_LAUNCH)
+	rocket.reset_to_pad()
+	_merge_launch_settings_into_rocket_config(ui.build_config())
+	rocket.preview_config(rocket.config)
+
+func _on_back_to_start() -> void:
+	# Return all the way to the fin design page, keeping the current design so it
+	# can be re-edited. The rocket goes back to the pad.
+	rocket.reset_to_pad()
+	_set_app_state(AppState.EDITING_FINS)
+	fin_editor.show_first_step()
+	_on_fin_data_changed(fin_editor.get_current_fin_data())
 
 func _on_fin_data_changed(fin_data: FinData) -> void:
 	if _app_state != AppState.EDITING_FINS:

@@ -3,6 +3,7 @@ extends Control
 
 signal launch_requested(config: RocketConfig)
 signal reset_requested
+signal back_to_start_requested
 signal config_changed(config: RocketConfig)
 
 @onready var launch_button: Button = $Panel/Margin/VBox/ButtonRow/LaunchButton
@@ -16,8 +17,12 @@ signal config_changed(config: RocketConfig)
 @onready var diameter_slider: HSlider = $Panel/Margin/VBox/DiameterRow/DiameterSlider
 @onready var length_slider: HSlider = $Panel/Margin/VBox/LengthRow/LengthSlider
 @onready var wind_speed_slider: HSlider = $Panel/Margin/VBox/WindSpeedRow/WindSpeedSlider
-@onready var wind_direction_slider: HSlider = $Panel/Margin/VBox/WindDirectionRow/WindDirectionSlider
+@onready var wind_direction_slider: RadialSlider = $Panel/Margin/VBox/WindDirectionRow/WindDirectionDial
 @onready var body_material_option: OptionButton = $Panel/Margin/VBox/BodyMaterialRow/BodyMaterialOption
+@onready var advanced_wind_button: Button = $Panel/Margin/VBox/WindSpeedRow/AdvancedWindButton
+@onready var wind_advanced_panel: WindAdvancedPanel = $WindAdvancedPanel
+@onready var defaults_button: Button = $Panel/Margin/VBox/ActionRow/DefaultsButton
+@onready var back_to_start_button: Button = $Panel/Margin/VBox/ActionRow/BackToStartButton
 
 @onready var dry_mass_value: Label = $Panel/Margin/VBox/DryMassRow/DryMassValueLabel
 @onready var payload_value: Label = $Panel/Margin/VBox/PayloadRow/PayloadValueLabel
@@ -57,9 +62,93 @@ func _ready() -> void:
 	for slider in _sliders():
 		slider.value_changed.connect(_on_slider_changed)
 	body_material_option.item_selected.connect(func(_idx: int) -> void: _on_slider_changed(0.0))
+	advanced_wind_button.pressed.connect(_open_wind_advanced)
+	wind_advanced_panel.back_pressed.connect(_close_wind_advanced)
+	wind_advanced_panel.changed.connect(func() -> void: config_changed.emit(build_config()))
+	wind_advanced_panel.reset_requested.connect(func() -> void:
+		wind_advanced_panel.apply_reset(wind_speed_slider.value, wind_direction_slider.value))
+	defaults_button.pressed.connect(reset_to_defaults)
+	back_to_start_button.pressed.connect(func() -> void: back_to_start_requested.emit())
+	_setup_tooltips()
 	_update_value_labels()
 	results_panel.visible = false
 	config_changed.emit(build_config())
+
+var _info_popup: PanelContainer
+var _info_label: Label
+var _info_anchor: Control = null
+
+# Click a control's name (the cursor shows a help shape) to pop up an explanation.
+func _setup_tooltips() -> void:
+	_build_info_popup()
+	var tips := {
+		dry_mass_slider: "Dry mass — the empty airframe/structure mass, with no propellant or payload.",
+		payload_slider: "Payload mass carried by the rocket (instruments, etc.). Adds weight.",
+		propellant_slider: "Mass of propellant burned by the engine. More gives a longer, higher flight but adds liftoff weight.",
+		thrust_slider: "Average engine thrust. Must beat the rocket's weight (thrust-to-weight > 1) to lift off.",
+		burn_time_slider: "How long the engine burns. The thrust is delivered over this time.",
+		diameter_slider: "Body diameter. A wider rocket has more aerodynamic drag (larger frontal area).",
+		length_slider: "Body length. Affects the rocket's aerodynamics and stability.",
+		wind_speed_slider: "Wind speed at the pad. Stronger wind pushes the rocket downrange.",
+		wind_direction_slider: "Wind direction, like a compass (drag the dial). Sets which way the wind blows.",
+		body_material_option: "Body material. Changes the body's drag and look.",
+	}
+	for control in tips:
+		_register_row_help(control as Control, tips[control])
+	_make_info_trigger(liftoff_mass_label, "Total mass at liftoff: dry mass + payload + propellant.")
+	_make_info_trigger(twr_label, "Thrust-to-weight ratio. Below 1 the rocket can't lift off; ~3-6 is a healthy launch.")
+
+func _build_info_popup() -> void:
+	_info_popup = PanelContainer.new()
+	_info_popup.visible = false
+	_info_popup.top_level = true  # position in absolute screen coords
+	_info_popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_info_popup.z_index = 100
+	var margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 10)
+	_info_label = Label.new()
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_info_label.custom_minimum_size = Vector2(240, 0)
+	margin.add_child(_info_label)
+	_info_popup.add_child(margin)
+	add_child(_info_popup)
+
+# Wire the row's leading name label as the click target for help.
+func _register_row_help(control: Control, text: String) -> void:
+	var row := control.get_parent()
+	if row != null and row.get_child_count() > 0:
+		var name_label := row.get_child(0) as Control
+		if name_label != null:
+			_make_info_trigger(name_label, text)
+
+func _make_info_trigger(node: Control, text: String) -> void:
+	node.mouse_filter = Control.MOUSE_FILTER_STOP
+	node.mouse_default_cursor_shape = Control.CURSOR_HELP
+	node.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_toggle_info(node, text))
+
+func _toggle_info(anchor: Control, text: String) -> void:
+	if _info_popup.visible and _info_anchor == anchor:
+		_hide_info()
+		return
+	_info_label.text = text
+	_info_anchor = anchor
+	_info_popup.visible = true
+	_info_popup.reset_size()
+	# Float the popup just to the right of the controls panel, at the clicked row.
+	var panel := $Panel as Control
+	var pos := Vector2(panel.global_position.x + panel.size.x + 8.0, anchor.global_position.y)
+	var view := get_viewport_rect().size
+	pos.x = clampf(pos.x, 8.0, view.x - _info_popup.size.x - 8.0)
+	pos.y = clampf(pos.y, 8.0, view.y - _info_popup.size.y - 8.0)
+	_info_popup.global_position = pos
+
+func _hide_info() -> void:
+	if _info_popup != null:
+		_info_popup.visible = false
+		_info_anchor = null
 
 func set_base_config(config: RocketConfig) -> void:
 	_base_config = config.duplicate(true) as RocketConfig
@@ -88,9 +177,40 @@ func build_config() -> RocketConfig:
 	config.rocket_height = length_slider.value
 	config.wind_speed = wind_speed_slider.value
 	config.wind_direction = wind_direction_slider.value
+	config.wind_advanced = wind_advanced_panel.is_enabled()
+	config.wind_layers = wind_advanced_panel.get_layers()
 	config.body_material_name = _selected_body_material_name()
 	config.recalculate_masses()
 	return config
+
+func reset_to_defaults() -> void:
+	_hide_info()
+	dry_mass_slider.value = 5.0
+	payload_slider.value = 1.0
+	propellant_slider.value = 4.0
+	thrust_slider.value = 500.0
+	burn_time_slider.value = 3.0
+	diameter_slider.value = 12.0
+	length_slider.value = 1.6
+	wind_speed_slider.value = 2.0
+	wind_direction_slider.value = 0.0
+	for i in range(body_material_option.get_item_count()):
+		if str(body_material_option.get_item_metadata(i)) == "aluminum":
+			body_material_option.select(i)
+			break
+	# The advanced wind page has its own "Reset to Default" — leave it alone here.
+	_update_value_labels()
+	status_label.text = "Ready"
+	config_changed.emit(build_config())
+
+func _open_wind_advanced() -> void:
+	wind_advanced_panel.initialize_from_simple(wind_speed_slider.value, wind_direction_slider.value)
+	$Panel.visible = false
+	wind_advanced_panel.visible = true
+
+func _close_wind_advanced() -> void:
+	wind_advanced_panel.visible = false
+	$Panel.visible = true
 
 func set_status(message: String) -> void:
 	status_label.text = message
@@ -100,12 +220,17 @@ func set_hud_mode(enabled: bool) -> void:
 		slider.editable = not enabled
 	body_material_option.disabled = enabled
 	launch_button.disabled = enabled
-	if not enabled:
-		status_label.text = "Ready"
+	advanced_wind_button.disabled = enabled
+	defaults_button.disabled = enabled
+	wind_advanced_panel.set_interactive(not enabled)
 	if enabled:
+		_close_wind_advanced()
 		results_panel.visible = false
+	else:
+		status_label.text = "Ready"
 
 func _on_launch_pressed() -> void:
+	_hide_info()
 	status_label.text = "In flight"
 	results_panel.visible = false
 	launch_requested.emit(build_config())
@@ -125,6 +250,7 @@ func show_results(results: Dictionary) -> void:
 	status_label.text = "Stable flight" if success else "Flight failed"
 
 func _on_slider_changed(_value: float) -> void:
+	_hide_info()
 	_update_value_labels()
 	status_label.text = "Ready"
 	config_changed.emit(build_config())

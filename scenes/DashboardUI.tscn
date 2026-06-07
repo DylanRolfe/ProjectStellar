@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://dwxv11nnp5fpe"]
+[gd_scene load_steps=5 format=3 uid="uid://dwxv11nnp5fpe"]
 
 [ext_resource type="Script" uid="uid://2dtwb44ctjxs" path="res://scripts/ui_controller.gd" id="1_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ResultsPanel.tscn" id="2_results"]
+[ext_resource type="Script" path="res://scripts/radial_slider.gd" id="3_radial"]
+[ext_resource type="Script" path="res://scripts/wind_advanced_panel.gd" id="4_wind"]
 
 [node name="DashboardUI" type="Control"]
 layout_mode = 3
@@ -18,7 +20,7 @@ layout_mode = 0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 392.0
-offset_bottom = 596.0
+offset_bottom = 628.0
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
@@ -221,10 +223,16 @@ step = 0.5
 value = 2.0
 
 [node name="WindSpeedValueLabel" type="Label" parent="Panel/Margin/VBox/WindSpeedRow"]
-custom_minimum_size = Vector2(62, 0)
+custom_minimum_size = Vector2(56, 0)
 layout_mode = 2
 text = "2.0 m/s"
 horizontal_alignment = 2
+
+[node name="AdvancedWindButton" type="Button" parent="Panel/Margin/VBox/WindSpeedRow"]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+tooltip_text = "Advanced wind: set different wind at different altitudes"
+text = "+"
 
 [node name="WindDirectionRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
@@ -235,18 +243,19 @@ custom_minimum_size = Vector2(82, 0)
 layout_mode = 2
 text = "Wind dir"
 
-[node name="WindDirectionSlider" type="HSlider" parent="Panel/Margin/VBox/WindDirectionRow"]
-custom_minimum_size = Vector2(140, 0)
+[node name="WindDirectionDial" type="Control" parent="Panel/Margin/VBox/WindDirectionRow"]
+custom_minimum_size = Vector2(54, 54)
 layout_mode = 2
-size_flags_horizontal = 3
-max_value = 360.0
-step = 1.0
+script = ExtResource("3_radial")
 
 [node name="WindDirectionValueLabel" type="Label" parent="Panel/Margin/VBox/WindDirectionRow"]
 custom_minimum_size = Vector2(62, 0)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
 text = "0 deg"
 horizontal_alignment = 2
+vertical_alignment = 1
 
 [node name="BodyMaterialRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
@@ -284,8 +293,31 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Reset"
 
+[node name="ActionRow" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BackToStartButton" type="Button" parent="Panel/Margin/VBox/ActionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Back to Start"
+
+[node name="DefaultsButton" type="Button" parent="Panel/Margin/VBox/ActionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Reset to Default"
+
 [node name="StatusLabel" type="Label" parent="Panel/Margin/VBox"]
 layout_mode = 2
 text = "Ready"
+
+[node name="WindAdvancedPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 392.0
+offset_bottom = 596.0
+script = ExtResource("4_wind")
 
 [node name="ResultsPanel" parent="." instance=ExtResource("2_results")]

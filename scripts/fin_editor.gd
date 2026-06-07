@@ -15,6 +15,7 @@ const FinShapeCanvasScene = preload("res://scripts/fin_shape_canvas.gd")
 @onready var thickness_slider: HSlider = $CanvasLayer/Panel/Margin/VBox/ThicknessRow/HSlider
 @onready var thickness_value: Label = $CanvasLayer/Panel/Margin/VBox/ThicknessRow/ValueLabel
 @onready var continue_button: Button = $CanvasLayer/Panel/Margin/VBox/ContinueButton
+@onready var reset_default_button: Button = $CanvasLayer/Panel/Margin/VBox/ResetDefaultButton
 @onready var root_chord_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/RootChord
 @onready var tip_chord_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/TipChord
 @onready var span_label: Label = $CanvasLayer/Panel/Margin/VBox/InfoRow/Span
@@ -25,15 +26,32 @@ var fin_data: FinData = FinData.new()
 var shape_panel: PanelContainer
 var shape_canvas: FinShapeCanvas
 
+var _info_popup: PanelContainer
+var _info_label: Label
+var _info_anchor: Control = null
+
 func _ready() -> void:
 	fin_count_slider.value_changed.connect(_on_fin_count_changed)
 	thickness_slider.value_changed.connect(_on_thickness_changed)
 	material_option.item_selected.connect(_on_material_changed)
 	continue_button.pressed.connect(_on_continue)
+	reset_default_button.pressed.connect(_reset_to_default)
 
 	_populate_materials()
 	_build_shape_step_ui()
 	_show_shape_step()
+	_setup_tooltips()
+	_rebuild_all()
+
+func _reset_to_default() -> void:
+	# Resets the fin settings only — the drawn fin shape is left untouched
+	# (the shape step has its own "Reset Shape" button).
+	fin_count_slider.set_value_no_signal(4.0)
+	thickness_slider.set_value_no_signal(0.04)
+	material_option.select(0)
+	fin_count_value.text = "4"
+	thickness_value.text = "0.040 m"
+	_hide_info()
 	_rebuild_all()
 
 func set_editor_active(active: bool) -> void:
@@ -43,6 +61,65 @@ func set_editor_active(active: bool) -> void:
 
 func get_current_fin_data() -> FinData:
 	return fin_data
+
+## Show the first (fin shape) step again — used by "Back to Start".
+func show_first_step() -> void:
+	_hide_info()
+	_show_shape_step()
+
+# --- Click-to-show help tooltips --------------------------------------------
+func _setup_tooltips() -> void:
+	_build_info_popup()
+	_make_info_trigger($CanvasLayer/Panel/Margin/VBox/FinCountRow/Label, "Number of fins around the rocket. More fins usually add stability.")
+	_make_info_trigger($CanvasLayer/Panel/Margin/VBox/MaterialRow/Label, "Fin material — changes the fin mass (and look).")
+	_make_info_trigger($CanvasLayer/Panel/Margin/VBox/ThicknessRow/Label, "Fin thickness. Thicker fins are heavier.")
+	_make_info_trigger(root_chord_label, "Root chord: the length of the fin edge attached to the body.")
+	_make_info_trigger(tip_chord_label, "Tip chord: the length of the fin's outer edge.")
+	_make_info_trigger(span_label, "Span: how far the fin sticks out sideways from the body.")
+	_make_info_trigger(area_label, "Surface area of a single fin.")
+
+func _build_info_popup() -> void:
+	_info_popup = PanelContainer.new()
+	_info_popup.visible = false
+	_info_popup.top_level = true
+	_info_popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_info_popup.z_index = 100
+	var margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 10)
+	_info_label = Label.new()
+	_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_info_label.custom_minimum_size = Vector2(240, 0)
+	margin.add_child(_info_label)
+	_info_popup.add_child(margin)
+	editor_canvas.add_child(_info_popup)
+
+func _make_info_trigger(node: Control, text: String) -> void:
+	node.mouse_filter = Control.MOUSE_FILTER_STOP
+	node.mouse_default_cursor_shape = Control.CURSOR_HELP
+	node.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_toggle_info(node, text))
+
+func _toggle_info(anchor: Control, text: String) -> void:
+	if _info_popup.visible and _info_anchor == anchor:
+		_hide_info()
+		return
+	_info_label.text = text
+	_info_anchor = anchor
+	_info_popup.visible = true
+	_info_popup.reset_size()
+	var panel := $CanvasLayer/Panel as Control
+	var pos := Vector2(panel.global_position.x + panel.size.x + 8.0, anchor.global_position.y)
+	var view := get_viewport().get_visible_rect().size
+	pos.x = clampf(pos.x, 8.0, view.x - _info_popup.size.x - 8.0)
+	pos.y = clampf(pos.y, 8.0, view.y - _info_popup.size.y - 8.0)
+	_info_popup.global_position = pos
+
+func _hide_info() -> void:
+	if _info_popup != null:
+		_info_popup.visible = false
+		_info_anchor = null
 
 func _build_shape_step_ui() -> void:
 	shape_panel = PanelContainer.new()

@@ -15,15 +15,9 @@ gracefully. Coordinates in the samples are relative to the launch point:
 
 import json
 import math
-import multiprocessing
 import os
 import sys
 import traceback
-
-# Hard wall-clock cap. If RocketPy somehow still takes longer than this on a
-# pathological config, the parent process kills the worker and writes a
-# fallback result, so the game never freezes waiting on the solver.
-SOLVE_TIMEOUT_SECONDS = 25.0
 
 GRAVITY = 9.80665
 
@@ -87,6 +81,32 @@ def no_liftoff_payload(burn_time):
     }
 
 
+def build_wind_profile(layers):
+    """Turn altitude wind layers into RocketPy [altitude, value] tables.
+
+    Each layer is {"top": metres, "speed": m/s, "angle": deg}, ordered low->high.
+    Produces a near-stepwise East (u) and North (v) profile.
+    """
+    wind_u = []
+    wind_v = []
+    prev_top = 0.0
+    for i, layer in enumerate(layers):
+        speed = max(0.0, float(layer.get("speed", 0.0)))
+        angle = math.radians(float(layer.get("angle", 0.0)))
+        u = speed * math.sin(angle)
+        v = speed * math.cos(angle)
+        top = float(layer.get("top", 9000.0))
+        bottom = prev_top if i == 0 else prev_top + 1.0
+        if top <= bottom:
+            top = bottom + 1.0
+        wind_u.append([bottom, u])
+        wind_u.append([top, u])
+        wind_v.append([bottom, v])
+        wind_v.append([top, v])
+        prev_top = top
+    return wind_u, wind_v
+
+
 def build_and_fly(cfg):
     # Imported lazily so a missing dependency still produces a clean fallback.
     from rocketpy import Environment, GenericMotor, Rocket, Flight
@@ -147,13 +167,22 @@ def build_and_fly(cfg):
     i_axial = 0.5 * struct_mass * radius * radius
     i_trans = (1.0 / 12.0) * struct_mass * (3.0 * radius * radius + aero_len * aero_len)
 
-    # ---- Environment (constant wind layer) --------------------------------
+    # ---- Environment ------------------------------------------------------
     env = Environment(latitude=0.0, longitude=0.0, elevation=0.0)
-    wind_u = wind_speed * math.sin(wind_dir)   # East component
-    wind_v = wind_speed * math.cos(wind_dir)   # North component
-    env.set_atmospheric_model(
-        type="custom_atmosphere", wind_u=wind_u, wind_v=wind_v
-    )
+    layers = cfg.get("wind_layers") if cfg.get("wind_advanced") else None
+    if layers:
+        # Altitude-layered wind profile (advanced wind menu).
+        wind_u_profile, wind_v_profile = build_wind_profile(layers)
+        env.set_atmospheric_model(
+            type="custom_atmosphere", wind_u=wind_u_profile, wind_v=wind_v_profile
+        )
+    else:
+        # Single uniform wind.
+        env.set_atmospheric_model(
+            type="custom_atmosphere",
+            wind_u=wind_speed * math.sin(wind_dir),   # East component
+            wind_v=wind_speed * math.cos(wind_dir),   # North component
+        )
 
     # ---- Motor (constant thrust over the burn) ----------------------------
     motor = GenericMotor(
@@ -224,9 +253,9 @@ def build_and_fly(cfg):
         heading=0.0,
         terminate_on_apogee=True,
         max_time=40.0,
-        max_time_step=0.1,
-        rtol=1e-3,
-        atol=1e-3,
+        max_time_step=0.2,
+        rtol=5e-3,
+        atol=5e-3,
         verbose=False,
     )
 
@@ -335,16 +364,6 @@ def build_and_fly(cfg):
     }
 
 
-def _worker(cfg, output_path):
-    """Runs in a child process so the parent can enforce a hard timeout."""
-    try:
-        payload = build_and_fly(cfg)
-    except Exception as exc:  # noqa: BLE001
-        traceback.print_exc()
-        payload = fallback_payload(exc, "RocketPy simulation failed")
-    write_output(output_path, payload)
-
-
 def main():
     if len(sys.argv) < 3:
         print("usage: rocket_sim.py <input.json> <output.json>", file=sys.stderr)
@@ -358,19 +377,17 @@ def main():
         write_output(output_path, fallback_payload(exc, "Could not read config"))
         return 1
 
-    proc = multiprocessing.Process(target=_worker, args=(cfg, output_path))
-    proc.start()
-    proc.join(SOLVE_TIMEOUT_SECONDS)
-    if proc.is_alive():
-        proc.terminate()
-        proc.join()
-        write_output(
-            output_path,
-            fallback_payload("timeout", "Simulation timed out — try gentler settings"),
-        )
+    # Run the solve directly (no child process). The input is sanitised into a
+    # well-behaved regime so it always returns quickly; if anything ever did
+    # hang, the Godot bridge kills this process after its own timeout.
+    try:
+        payload = build_and_fly(cfg)
+    except Exception as exc:  # noqa: BLE001
+        traceback.print_exc()
+        payload = fallback_payload(exc, "RocketPy simulation failed")
+    write_output(output_path, payload)
     return 0
 
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()
     sys.exit(main())

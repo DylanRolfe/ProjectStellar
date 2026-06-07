@@ -24,9 +24,11 @@ const MODEL_PATH := "res://assets/models/low-poly_desert_scene.glb"
 @export var scatter_random_rotation: bool = true
 @export var scatter_scale_variance: float = 0.25
 @export var scatter_seed: int = 42
+@export var min_spacing: float = 6.0  # metres — keep scattered props from overlapping
 
 var _instance: Node3D
 var _scatter_root: Node3D
+var _occupied: Dictionary = {}  # spatial hash of placed prop positions (Vector2 xz)
 
 
 func _ready() -> void:
@@ -97,7 +99,7 @@ func _ready() -> void:
 		_set_tree_visible(copy, true)
 
 		var original_y := template.global_position.y
-		copy.global_position = _random_position(rng, original_y + scatter_y_offset)
+		copy.global_position = _spaced_position(rng, original_y + scatter_y_offset)
 
 		if scatter_random_rotation:
 			copy.rotation.y = rng.randf_range(0.0, TAU)
@@ -127,6 +129,46 @@ func _random_position(rng: RandomNumberGenerator, y_value: float) -> Vector3:
 	var z := sin(angle) * radius
 
 	return Vector3(x, y_value, z)
+
+
+# Picks a random position that keeps at least `min_spacing` from already-placed
+# props, using a spatial hash so the check stays cheap even with many props.
+func _spaced_position(rng: RandomNumberGenerator, y_value: float) -> Vector3:
+	for _attempt in range(12):
+		var candidate := _random_position(rng, y_value)
+		var flat := Vector2(candidate.x, candidate.z)
+		if _is_spaced(flat):
+			_register(flat)
+			return candidate
+	# Couldn't find a clear spot — place it anyway so the count is preserved.
+	var fallback := _random_position(rng, y_value)
+	_register(Vector2(fallback.x, fallback.z))
+	return fallback
+
+
+func _spatial_cell(flat: Vector2) -> Vector2i:
+	var inv := 1.0 / maxf(min_spacing, 0.1)
+	return Vector2i(int(floor(flat.x * inv)), int(floor(flat.y * inv)))
+
+
+func _is_spaced(flat: Vector2) -> bool:
+	var cell := _spatial_cell(flat)
+	var min_sq := min_spacing * min_spacing
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var key := cell + Vector2i(dx, dy)
+			if _occupied.has(key):
+				for other in _occupied[key]:
+					if flat.distance_squared_to(other) < min_sq:
+						return false
+	return true
+
+
+func _register(flat: Vector2) -> void:
+	var cell := _spatial_cell(flat)
+	if not _occupied.has(cell):
+		_occupied[cell] = []
+	_occupied[cell].append(flat)
 
 
 func _hide_original_props_near_origin(node: Node, radius: float) -> void:

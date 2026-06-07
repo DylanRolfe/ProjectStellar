@@ -51,8 +51,21 @@ var _pb_index: int = 0
 var _launch_origin: Vector3 = Vector3.ZERO
 var _live_speed: float = 0.0
 
+# The rocket's transform on the launch pad, so we can return to it after a flight.
+var _initial_transform: Transform3D = Transform3D.IDENTITY
+
 func _ready() -> void:
+	_initial_transform = global_transform
 	setup(config)
+	set_physics_process(true)
+
+## Return the rocket to the launch pad (keeping its current config), ready to
+## fly again. Used by the Reset button so repeated launches don't reset design.
+func reset_to_pad() -> void:
+	_playback = false
+	setup(config)
+	global_transform = _initial_transform
+	engine_flame.stop()
 	set_physics_process(true)
 
 func preview_config(new_config: RocketConfig) -> void:
@@ -91,6 +104,7 @@ func setup(new_config: RocketConfig) -> void:
 	start_x = global_position.x
 	_launch_origin = global_position
 	_live_speed = 0.0
+	_playback = false
 	_launched = false
 	_finished = false
 	_flight_time = 0.0
@@ -307,11 +321,19 @@ func get_live_telemetry() -> Dictionary:
 	return {
 		"altitude": maxf(offset.y, 0.0),
 		"speed": _live_speed,
+		"mass": _current_mass(),
 		"max_altitude": max_altitude,
 		"max_speed": max_speed,
 		"downrange": Vector2(offset.x, offset.z).length(),
 		"time": _pb_time if _playback else _flight_time,
 	}
+
+## Current total mass — drops as propellant burns off, then holds at dry mass.
+func _current_mass() -> float:
+	if _playback:
+		var burn_fraction := clampf(1.0 - _pb_time / maxf(_pb_burn_time, 0.001), 0.0, 1.0)
+		return config.dry_mass + config.propellant_mass * burn_fraction
+	return mass
 
 func x_displacement() -> float:
 	return global_position.x - start_x

@@ -15,7 +15,7 @@ extends RefCounted
 const SCRIPT_PATH := "res://python/rocket_sim.py"
 const INPUT_PATH := "user://rocketpy_input.json"
 const OUTPUT_PATH := "user://rocketpy_output.json"
-const RUN_TIMEOUT := 35.0
+const RUN_TIMEOUT := 60.0
 
 # Interpreters to try, in order. "py" is the Windows launcher; the rest cover
 # other platforms / installs. Each entry is [executable, [leading args...]].
@@ -43,6 +43,8 @@ static func build_config_dict(config: RocketConfig) -> Dictionary:
 		"drag_coefficient": clampf(0.5 + drag_modifier, 0.2, 1.5),
 		"wind_speed": config.wind_speed,
 		"wind_direction": config.wind_direction,
+		"wind_advanced": config.wind_advanced,
+		"wind_layers": config.wind_layers,
 		"fin_count": config.fin_count,
 		"fin_size": config.fin_size,
 	}

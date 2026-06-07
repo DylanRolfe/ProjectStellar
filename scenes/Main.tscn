@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://sefyjwghdccb" path="res://scripts/desert_environment.gd" id="7_desert"]
 [ext_resource type="Script" path="res://scripts/star_field.gd" id="8_stars"]
 [ext_resource type="Script" path="res://scripts/flight_hud.gd" id="9_hud"]
+[ext_resource type="Script" path="res://scripts/zoom_controls.gd" id="10_zoom"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(1000, 0.1, 1000)
@@ -105,3 +106,16 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("9_hud")
 rocket_path = NodePath("../../Rocket")
+
+[node name="OverlayLayer" type="CanvasLayer" parent="."]
+layer = 11
+
+[node name="ZoomControls" type="Control" parent="OverlayLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("10_zoom")
+camera_path = NodePath("../../Camera3D")

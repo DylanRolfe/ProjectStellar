@@ -20,7 +20,7 @@ layout_mode = 0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 380.0
-offset_bottom = 524.0
+offset_bottom = 588.0
 mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
@@ -107,30 +107,30 @@ layout_mode = 2
 text = "0.040 m"
 horizontal_alignment = 2
 
-[node name="InfoRow" type="HBoxContainer" parent="CanvasLayer/Panel/Margin/VBox"]
+[node name="InfoRow" type="VBoxContainer" parent="CanvasLayer/Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="RootChord" type="Label" parent="CanvasLayer/Panel/Margin/VBox/InfoRow"]
 layout_mode = 2
 text = "Root: 0.40 m"
-theme_override_font_sizes/font_size = 11
 
 [node name="TipChord" type="Label" parent="CanvasLayer/Panel/Margin/VBox/InfoRow"]
 layout_mode = 2
 text = "Tip: 0.25 m"
-theme_override_font_sizes/font_size = 11
 
 [node name="Span" type="Label" parent="CanvasLayer/Panel/Margin/VBox/InfoRow"]
 layout_mode = 2
 text = "Span: 0.30 m"
-theme_override_font_sizes/font_size = 11
 
 [node name="Area" type="Label" parent="CanvasLayer/Panel/Margin/VBox/InfoRow"]
 layout_mode = 2
 text = "Area: 0.000 m²"
-theme_override_font_sizes/font_size = 11
 
 [node name="ContinueButton" type="Button" parent="CanvasLayer/Panel/Margin/VBox"]
 layout_mode = 2
 text = "Continue to Launch"
+
+[node name="ResetDefaultButton" type="Button" parent="CanvasLayer/Panel/Margin/VBox"]
+layout_mode = 2
+text = "Reset to Default"
