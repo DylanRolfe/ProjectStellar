@@ -7,6 +7,7 @@ extends Control
 @onready var prompt: Label = $CenterContainer/VBox/ClickPrompt
 @onready var scanner: ColorRect = $ScannerLine
 @onready var fade_overlay: ColorRect = $FadeOverlay
+@onready var setup_warning: Label = $SetupWarning
 
 var _started: bool = false
 
@@ -16,6 +17,17 @@ func _ready() -> void:
 	pulse.tween_property(prompt, "modulate:a", 0.12, 0.75) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	pulse.tween_property(prompt, "modulate:a", 1.0, 0.75) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	# The setup warning pulses in time with the prompt, brightening to a soft
+	# lighter white at the peak. Same timing/phase keeps them in sync.
+	var warn_dim := Color(0.9, 0.92, 0.96, 0.35)
+	var warn_bright := Color(1.25, 1.3, 1.4, 0.85)
+	setup_warning.modulate = warn_bright
+	var warn_pulse := create_tween().set_loops()
+	warn_pulse.tween_property(setup_warning, "modulate", warn_dim, 0.75) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	warn_pulse.tween_property(setup_warning, "modulate", warn_bright, 0.75) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 	# Scanner line sweeping top-to-bottom, echoing the website's .scanner-line.

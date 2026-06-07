@@ -85,6 +85,27 @@ theme_override_font_sizes/font_size = 18
 text = "PRESS ANY KEY TO BEGIN"
 horizontal_alignment = 1
 
+[node name="SetupWarning" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -52.0
+offset_right = -16.0
+offset_bottom = -14.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.7, 0.74, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Read Setup Instructions first, this will not work without RocketPy"
+horizontal_alignment = 2
+vertical_alignment = 2
+autowrap_mode = 2
+
 [node name="FadeOverlay" type="ColorRect" parent="."]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
