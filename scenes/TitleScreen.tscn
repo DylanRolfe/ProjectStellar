@@ -82,7 +82,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.21961, 0.74118, 0.97255, 1)
 theme_override_font_sizes/font_size = 18
-text = "CLICK ANYWHERE TO BEGIN"
+text = "PRESS ANY KEY TO BEGIN"
 horizontal_alignment = 1
 
 [node name="FadeOverlay" type="ColorRect" parent="."]

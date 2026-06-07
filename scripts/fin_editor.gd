@@ -74,7 +74,7 @@ func _build_shape_step_ui() -> void:
 	vbox.add_child(title)
 
 	var instructions := Label.new()
-	instructions.text = "Root edge locked to rocket. Drag the outer points to shape the fin."
+	instructions.text = "Drag the orange tip corners to shape the fin. Drag the green root corners up/down to lengthen or shorten the fin's root."
 	instructions.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(instructions)
 

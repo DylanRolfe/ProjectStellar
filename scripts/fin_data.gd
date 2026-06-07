@@ -49,8 +49,20 @@ static func sanitize_shape_points(raw_points: Array[Vector2]) -> Array[Vector2]:
 	for i in range(min(raw_points.size(), sanitized.size())):
 		sanitized[i] = raw_points[i]
 
-	sanitized[ROOT_TOP_INDEX] = Vector2(0.0, 0.35)
-	sanitized[ROOT_BOTTOM_INDEX] = Vector2(0.0, -0.35)
+	# Root edge stays attached to the body (x = 0) but can slide along the body
+	# axis (y) so the player can lengthen or shorten the fin's root chord.
+	var root_top := sanitized[ROOT_TOP_INDEX]
+	var root_bottom := sanitized[ROOT_BOTTOM_INDEX]
+	root_top.x = 0.0
+	root_bottom.x = 0.0
+	root_top.y = clampf(root_top.y, MIN_Y, MAX_Y)
+	root_bottom.y = clampf(root_bottom.y, MIN_Y, MAX_Y)
+	if root_top.y <= root_bottom.y + MIN_CHORD_GAP:
+		var root_center := clampf((root_top.y + root_bottom.y) * 0.5, MIN_Y + MIN_CHORD_GAP * 0.5, MAX_Y - MIN_CHORD_GAP * 0.5)
+		root_top.y = root_center + MIN_CHORD_GAP * 0.5
+		root_bottom.y = root_center - MIN_CHORD_GAP * 0.5
+	sanitized[ROOT_TOP_INDEX] = root_top
+	sanitized[ROOT_BOTTOM_INDEX] = root_bottom
 
 	var tip_top := sanitized[TIP_TOP_INDEX]
 	var tip_bottom := sanitized[TIP_BOTTOM_INDEX]

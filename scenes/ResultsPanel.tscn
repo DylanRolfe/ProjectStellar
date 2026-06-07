@@ -17,14 +17,14 @@ mouse_filter = 2
 visible = false
 
 [node name="Panel" type="PanelContainer" parent="."]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = -212.0
-offset_right = 376.0
-offset_bottom = -16.0
-grow_vertical = 0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -376.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 240.0
+grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="Margin" type="MarginContainer" parent="Panel"]

@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://8m4hldimav30" path="res://scripts/simulation_manager.gd" id="5_manager"]
 [ext_resource type="PackedScene" path="res://scenes/FinEditor.tscn" id="6_fin_editor"]
 [ext_resource type="Script" uid="uid://sefyjwghdccb" path="res://scripts/desert_environment.gd" id="7_desert"]
+[ext_resource type="Script" path="res://scripts/star_field.gd" id="8_stars"]
+[ext_resource type="Script" path="res://scripts/flight_hud.gd" id="9_hud"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(1000, 0.1, 1000)
@@ -79,6 +81,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 0)
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1379744393]
 environment = SubResource("Environment_world")
 
+[node name="StarField" type="Node3D" parent="."]
+script = ExtResource("8_stars")
+
 [node name="SimulationManager" type="Node" parent="." unique_id=1286256810]
 script = ExtResource("5_manager")
 rocket_path = NodePath("../Rocket")
@@ -89,3 +94,14 @@ visible = false
 
 [node name="DashboardUI" parent="UILayer" unique_id=2078586237 instance=ExtResource("3_dashboard")]
 layout_mode = 3
+
+[node name="FlightHUD" type="Control" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9_hud")
+rocket_path = NodePath("../../Rocket")

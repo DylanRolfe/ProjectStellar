@@ -1,3 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Python / RocketPy solver
+python/__pycache__/
+*.pyc

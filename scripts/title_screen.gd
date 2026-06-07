@@ -2,7 +2,7 @@ extends Control
 
 ## Boot screen shown before the simulator. Mirrors the projectstellar.ca hero:
 ## gradient "PROJECT STELLAR" wordmark over a dark sci-fi backdrop with a
-## sweeping scanner line and a flashing "click anywhere to begin" prompt.
+## sweeping scanner line and a flashing "press any key to begin" prompt.
 
 @onready var prompt: Label = $CenterContainer/VBox/ClickPrompt
 @onready var scanner: ColorRect = $ScannerLine
@@ -27,9 +27,9 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _started:
 		return
-	var triggered: bool = (event is InputEventMouseButton and event.pressed) \
-		or (event is InputEventScreenTouch and event.pressed) \
-		or (event is InputEventKey and event.pressed and not event.echo)
+	# Start on any key press (keyboard or controller button), not on mouse click.
+	var triggered: bool = (event is InputEventKey and event.pressed and not event.echo) \
+		or (event is InputEventJoypadButton and event.pressed)
 	if triggered:
 		_begin()
 

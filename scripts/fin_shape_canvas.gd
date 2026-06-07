@@ -35,9 +35,10 @@ func set_points(new_points: Array[Vector2]) -> void:
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
+			# All four corners are grabbable now. The root corners are kept on
+			# the body (x = 0) by FinData.sanitize_shape_points, so dragging them
+			# only slides along the body axis to change the root chord length.
 			_selected_index = _pick_point(event.position)
-			if _selected_index == ROOT_TOP_INDEX or _selected_index == ROOT_BOTTOM_INDEX:
-				_selected_index = -1
 		else:
 			_selected_index = -1
 	elif event is InputEventMouseMotion and _selected_index >= 0:
@@ -79,8 +80,14 @@ func _draw() -> void:
 
 	for i in range(points.size()):
 		var p := _shape_to_canvas(points[i])
-		var locked := i == ROOT_TOP_INDEX or i == ROOT_BOTTOM_INDEX
-		var color := Color(0.35, 1.0, 0.45) if locked else Color(1.0, 0.85, 0.25) if i == _selected_index else Color(1.0, 0.55, 0.18)
+		var is_root := i == ROOT_TOP_INDEX or i == ROOT_BOTTOM_INDEX
+		var color: Color
+		if i == _selected_index:
+			color = Color(1.0, 0.85, 0.25)      # grabbed = yellow
+		elif is_root:
+			color = Color(0.35, 1.0, 0.45)      # root corners = green
+		else:
+			color = Color(1.0, 0.55, 0.18)      # tip corners = orange
 		draw_circle(p, POINT_RADIUS, color)
 		draw_arc(p, POINT_RADIUS, 0.0, TAU, 20, Color(0.05, 0.04, 0.03), 1.5)
 

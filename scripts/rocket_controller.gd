@@ -3,7 +3,6 @@ extends RigidBody3D
 
 signal flight_finished(reason: String)
 
-const FUEL_BURN_RATE: float = 8000.0
 const AIR_DENSITY: float = 1.225
 const DRAG_COEFFICIENT: float = 1.2
 const WIND_FORCE_MULTIPLIER: float = 1.0
@@ -28,6 +27,7 @@ var start_x: float = 0.0
 @onready var engine_flame: RocketFlame = $EngineFlame
 
 var _fuel: float = 0.0
+var _burn_rate: float = 0.0
 var _launched: bool = false
 var _finished: bool = false
 var _flight_time: float = 0.0
@@ -36,6 +36,20 @@ var _tilt_samples: int = 0
 var _tumbled: bool = false
 var _deg: bool = false
 var _last_print_time: float = 0.0
+
+# --- RocketPy trajectory playback ---
+const PLAYBACK_SPEED: float = 2.0  # animate at 2x real time so flights aren't tedious
+var _playback: bool = false
+var _pb_samples: Array = []
+var _pb_time: float = 0.0
+var _pb_duration: float = 0.0
+var _pb_burn_time: float = 0.0
+var _pb_origin: Vector3 = Vector3.ZERO
+var _pb_index: int = 0
+
+# Live telemetry (read by the flight HUD each frame).
+var _launch_origin: Vector3 = Vector3.ZERO
+var _live_speed: float = 0.0
 
 func _ready() -> void:
 	setup(config)
@@ -68,12 +82,15 @@ func setup(new_config: RocketConfig) -> void:
 	config = new_config
 	config.recalculate_masses()
 	mass = config.total_launch_mass
-	_fuel = config.fuel_amount
+	_fuel = config.propellant_mass
+	_burn_rate = config.propellant_mass / maxf(config.burn_time, 0.001)
 	max_altitude = 0.0
 	max_speed = 0.0
 	current_tilt = 0.0
 	max_tilt = 0.0
 	start_x = global_position.x
+	_launch_origin = global_position
+	_live_speed = 0.0
 	_launched = false
 	_finished = false
 	_flight_time = 0.0
@@ -99,6 +116,122 @@ func launch() -> void:
 	engine_flame.set_thrust_factor(config.engine_thrust / 5000.0)
 	engine_flame.emitting = true
 	print("Launch started: thrust %.1f N, mass %.1f kg, fuel %.1f, wind %.1f m/s @ %.0f deg, fins %d size %.2f" % [config.engine_thrust, mass, _fuel, config.wind_speed, config.wind_direction, config.fin_count, config.fin_size])
+
+## Animate a RocketPy-computed trajectory instead of running local physics.
+## `samples` is an array of {t, x, y, z, v} dictionaries (x=East, y=North,
+## z=Up, all metres relative to the launch point); `burn_time` is how long the
+## engine is lit, so the flame cuts out when the fuel runs out.
+func play_trajectory(samples: Array, burn_time: float) -> void:
+	if samples.size() < 2:
+		force_finish("No trajectory returned")
+		return
+	_pb_samples = samples
+	_pb_burn_time = burn_time
+	_pb_time = 0.0
+	_pb_index = 0
+	_pb_duration = float(samples[samples.size() - 1]["t"])
+	_pb_origin = global_position
+	_launched = true
+	_finished = false
+	_playback = true
+	freeze = true
+	sleeping = false
+	set_physics_process(false)
+	set_process(true)
+	max_altitude = 0.0
+	max_speed = 0.0
+	max_tilt = 0.0
+	engine_flame.set_thrust_factor(clampf(config.engine_thrust / 5000.0, 0.15, 1.0))
+	engine_flame.emitting = burn_time > 0.0
+	# Place the rocket at the first sample, upright.
+	global_position = _pb_origin + _sample_position(0.0)
+	print("Playback started: %d samples, %.1fs flight, %.2fs burn" % [samples.size(), _pb_duration, burn_time])
+
+func _process(delta: float) -> void:
+	if not _playback:
+		return
+	_pb_time += delta * PLAYBACK_SPEED
+
+	# Cut the flame once the engine burn is over (fuel exhausted).
+	if engine_flame.emitting and _pb_time >= _pb_burn_time:
+		engine_flame.stop()
+
+	if _pb_time >= _pb_duration:
+		_finish_playback()
+		return
+
+	var pos := _sample_position(_pb_time)
+
+	# Point the nose (local +Y) along the direction of travel, and move there.
+	# Set the whole transform at once (assigning global_transform.basis on its
+	# own does not reliably persist on a frozen body).
+	var ahead := _sample_position(minf(_pb_time + 0.04, _pb_duration))
+	var velocity := ahead - pos
+	var orientation := global_transform.basis
+	if velocity.length() > 0.01:
+		orientation = _basis_along(velocity.normalized())
+	global_transform = Transform3D(orientation, _pb_origin + pos)
+
+	var altitude := pos.y
+	_live_speed = _sample_speed(_pb_time)
+	max_altitude = maxf(max_altitude, altitude)
+	max_speed = maxf(max_speed, _live_speed)
+	current_tilt = rad_to_deg(global_transform.basis.y.angle_to(Vector3.UP))
+	max_tilt = maxf(max_tilt, current_tilt)
+
+func _finish_playback() -> void:
+	if _finished:
+		return
+	_playback = false
+	_finished = true
+	_launched = false
+	engine_flame.stop()
+	var landing := _sample_position(_pb_duration)
+	landing.y = maxf(landing.y, GROUND_IMPACT_HEIGHT)
+	# Rest tipped over on the ground, like the physics path does.
+	var tipped := Basis(Vector3.FORWARD, deg_to_rad(75.0))
+	global_transform = Transform3D(tipped, _pb_origin + landing)
+	_flight_time = _pb_duration
+	print("Playback finished: max height %.1f m, max speed %.1f m/s" % [max_altitude, max_speed])
+	flight_finished.emit("Flight complete: returned to the ground")
+
+## Linearly interpolates the trajectory sample position at time `t`, mapping
+## RocketPy axes (East, North, Up) into Godot's (x, y=up, z).
+func _sample_position(t: float) -> Vector3:
+	var i := _find_sample_index(t)
+	var a: Dictionary = _pb_samples[i]
+	var b: Dictionary = _pb_samples[min(i + 1, _pb_samples.size() - 1)]
+	var ta := float(a["t"])
+	var tb := float(b["t"])
+	var f := 0.0 if tb <= ta else clampf((t - ta) / (tb - ta), 0.0, 1.0)
+	var ax := float(a["x"]); var ay := float(a["y"]); var az := float(a["z"])
+	var bx := float(b["x"]); var by := float(b["y"]); var bz := float(b["z"])
+	return Vector3(
+		lerpf(ax, bx, f),
+		lerpf(az, bz, f),
+		lerpf(ay, by, f)
+	)
+
+func _sample_speed(t: float) -> float:
+	var i := _find_sample_index(t)
+	return float(_pb_samples[i]["v"])
+
+func _find_sample_index(t: float) -> int:
+	# Samples are time-ordered; advance the cached cursor to the right segment.
+	while _pb_index < _pb_samples.size() - 2 and float(_pb_samples[_pb_index + 1]["t"]) < t:
+		_pb_index += 1
+	while _pb_index > 0 and float(_pb_samples[_pb_index]["t"]) > t:
+		_pb_index -= 1
+	return _pb_index
+
+func _basis_along(dir: Vector3) -> Basis:
+	var y_axis := dir.normalized()
+	var x_axis := Vector3.RIGHT
+	if absf(y_axis.dot(Vector3.RIGHT)) > 0.99:
+		x_axis = Vector3.FORWARD
+	var z_axis := x_axis.cross(y_axis).normalized()
+	x_axis = y_axis.cross(z_axis).normalized()
+	return Basis(x_axis, y_axis, z_axis)
 
 func _physics_process(delta: float) -> void:
 	if not _launched or _finished:
@@ -129,10 +262,14 @@ func _physics_process(delta: float) -> void:
 	if _fuel > 0.0:
 		var tilt := rad_to_deg(global_transform.basis.y.angle_to(Vector3.UP))
 		if tilt < 60.0:
-			var burn := minf(_fuel, FUEL_BURN_RATE * delta)
+			var burn := minf(_fuel, _burn_rate * delta)
 			_fuel -= burn
-			mass = config.dry_mass + _fuel * RocketConfig.FUEL_MASS_FACTOR
+			mass = config.dry_mass + _fuel
 			apply_central_force(global_transform.basis.y.normalized() * config.engine_thrust)
+
+	# Cut the exhaust flame the moment the rocket runs out of fuel.
+	if _fuel <= 0.0 and engine_flame.emitting:
+		engine_flame.stop()
 
 	if _fuel <= 0.0 and linear_velocity.y < 0.0:
 		var nose_dir := global_transform.basis.y.normalized()
@@ -141,8 +278,9 @@ func _physics_process(delta: float) -> void:
 			var flip_torque := nose_dir.angle_to(Vector3.DOWN) * mass * 0.8
 			apply_torque(flip_axis.normalized() * flip_torque)
 
+	_live_speed = linear_velocity.length()
 	max_altitude = maxf(max_altitude, altitude)
-	max_speed = maxf(max_speed, linear_velocity.length())
+	max_speed = maxf(max_speed, _live_speed)
 	current_tilt = rad_to_deg(global_transform.basis.y.angle_to(Vector3.UP))
 	max_tilt = maxf(max_tilt, current_tilt)
 	_tilt_sum += current_tilt
@@ -159,6 +297,21 @@ func average_tilt() -> float:
 
 func flight_time() -> float:
 	return _flight_time
+
+func is_flying() -> bool:
+	return _playback or (_launched and not _finished)
+
+## Live flight stats for the HUD, refreshed every frame while in flight.
+func get_live_telemetry() -> Dictionary:
+	var offset := global_position - _launch_origin
+	return {
+		"altitude": maxf(offset.y, 0.0),
+		"speed": _live_speed,
+		"max_altitude": max_altitude,
+		"max_speed": max_speed,
+		"downrange": Vector2(offset.x, offset.z).length(),
+		"time": _pb_time if _playback else _flight_time,
+	}
 
 func x_displacement() -> float:
 	return global_position.x - start_x

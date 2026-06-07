@@ -1,13 +1,8 @@
 [gd_scene format=3 uid="uid://cni24r4bajgif"]
 
-<<<<<<< Updated upstream
-[ext_resource type="Script" path="res://scripts/rocket_controller.gd" id="1_controller"]
-[ext_resource type="PackedScene" path="res://assets/models/meshy_rocket/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture.glb" id="2_meshy_rocket"]
-[ext_resource type="Script" path="res://scripts/rocket_flame.gd" id="3_flame"]
-=======
 [ext_resource type="Script" uid="uid://chfe6s1b4yq87" path="res://scripts/rocket_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" uid="uid://dfqx0ewqp5tnb" path="res://assets/models/meshy_rocket/Meshy_AI_Blue_Rocket_with_Eyes_0606203313_texture.glb" id="2_meshy_rocket"]
->>>>>>> Stashed changes
+[ext_resource type="Script" uid="uid://bwgm46ouhhtab" path="res://scripts/rocket_flame.gd" id="3_flame"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_collision"]
 radius = 2.6
@@ -30,11 +25,6 @@ shape = SubResource("CapsuleShape3D_collision")
 [node name="FinHolder" type="Node3D" parent="." unique_id=2096834929]
 transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
 
-<<<<<<< Updated upstream
 [node name="EngineFlame" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("3_flame")
-=======
-[node name="EngineParticles" type="GPUParticles3D" parent="." unique_id=799775430]
-emitting = false
->>>>>>> Stashed changes

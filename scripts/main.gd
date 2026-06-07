@@ -26,6 +26,7 @@ func _ready() -> void:
 	ui.reset_requested.connect(_on_reset_requested)
 	ui.config_changed.connect(_on_config_changed)
 	simulation_manager.results_ready.connect(_on_results_ready)
+	simulation_manager.simulation_state_changed.connect(func(message: String) -> void: ui.set_status(message))
 
 	_set_app_state(AppState.EDITING_FINS)
 	_on_fin_data_changed(fin_editor.get_current_fin_data())
@@ -61,13 +62,15 @@ func _on_config_changed(slider_config: RocketConfig) -> void:
 func _merge_launch_settings_into_rocket_config(slider_config: RocketConfig) -> void:
 	var rc := rocket.config
 	rc.engine_thrust = slider_config.engine_thrust
-	rc.fuel_amount = slider_config.fuel_amount
-	rc.wind_speed = slider_config.wind_speed
-	rc.wind_direction = slider_config.wind_direction
+	rc.propellant_mass = slider_config.propellant_mass
+	rc.burn_time = slider_config.burn_time
+	rc.body_dry_mass = slider_config.body_dry_mass
+	rc.payload_mass = slider_config.payload_mass
 	rc.rocket_radius = slider_config.rocket_radius
 	rc.rocket_height = slider_config.rocket_height
+	rc.wind_speed = slider_config.wind_speed
+	rc.wind_direction = slider_config.wind_direction
 	rc.body_material_name = slider_config.body_material_name
-	rc.payload_mass = slider_config.payload_mass
 	rc.recalculate_masses()
 
 func _on_reset_requested() -> void:
@@ -89,8 +92,8 @@ func _set_app_state(new_state: int) -> void:
 		AppState.EDITING_FINS:
 			fin_editor.set_editor_active(true)
 			ui_layer.visible = false
-			rocket.visible = false
-			sim_camera.current = false
+			rocket.visible = true
+			sim_camera.current = true
 		AppState.READY_TO_LAUNCH:
 			fin_editor.set_editor_active(false)
 			ui_layer.visible = true
