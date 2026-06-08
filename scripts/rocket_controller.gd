@@ -135,7 +135,7 @@ func _physics_process(delta: float) -> void:
 		var nose_dir := global_transform.basis.y.normalized()
 		var flip_axis := nose_dir.cross(Vector3.DOWN)
 		if flip_axis.length() > MIN_TORQUE_AXIS:
-			var flip_torque := nose_dir.angle_to(Vector3.DOWN) * mass * 6.0
+			var flip_torque := nose_dir.angle_to(Vector3.DOWN) * mass * 4.0
 			apply_torque(flip_axis.normalized() * flip_torque)
 
 	max_altitude = maxf(max_altitude, altitude)
